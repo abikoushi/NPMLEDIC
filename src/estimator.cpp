@@ -10,7 +10,6 @@ void d_up(arma::mat & d, const arma::vec & p, const arma::uvec & j1, const arma:
     int n = j1.n_elem;
     d.fill(0);
     for(int i=0;i<n;i++){
-        Rprintf("%d ",i);
         if(j1[i]>=0 && j2[i]>=0){
             arma::vec q = p.rows(j1[i], j2[i]);
             q /= sum(q);
