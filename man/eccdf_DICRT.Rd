@@ -23,20 +23,27 @@ symptom onset left
   \item{SR}{
 symptom onset right
 }
+\item{tmax}{
+upper truncation point
+}
+\item{breaks}{
+breaks of histrogram
+}
+\item{iter}{
+nomber of iteration
+}
 }
 \details{
-Estimate emperical survival function from doubly interval censored with right truncated data
-}
-\value{
-  \item{time}{time}
-  \item{prob}{probability}
+Estimate emperical survival function from doubly interval censored with right truncated data. 
 }
 \examples{
-x <- rweibull(100,2,7)
-ew <- rexp(100)
-sw <- rexp(100)
-dat <- simDIC(x,ew,sw)
-out <- eccdf_DICRT(EL=dat$E_L, ER=dat$E_R, SL=dat$S_L, SR=dat$S_R)
-plot(out$time, out$prob, type="s", ylab="eccdf", xlab="x")
-curve(pweibull(x,2,7,lower.tail=FALSE), add=TRUE, col="royalblue")
+set.seed(123456)
+n <- 100L
+x <- rweibull(n,1.5,5)
+ew <- rexp(n)
+sw <- rexp(n)
+dat <- simDIC(x, ew, sw)
+out <- eccdf_DICRT(EL=dat$E_L, ER=dat$E_R, SL=dat$S_L, SR=dat$S_R, iter=1000)
+plot(out$value, out$prob, type="s", ylab="eccdf", xlab="x")
+curve(pweibull(x,1.5,5,lower.tail=FALSE), add=TRUE, col="royalblue")
 }

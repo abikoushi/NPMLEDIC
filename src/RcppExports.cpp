@@ -11,25 +11,26 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// ep_ICRT_em
-arma::vec ep_ICRT_em(const arma::vec& EL, const arma::vec& ER, const arma::vec& S, const double& tmax, const arma::vec& breaks, const int& iter);
-RcppExport SEXP _NPMLEDIC_ep_ICRT_em(SEXP ELSEXP, SEXP ERSEXP, SEXP SSEXP, SEXP tmaxSEXP, SEXP breaksSEXP, SEXP iterSEXP) {
+// ep_DICRT_em
+arma::vec ep_DICRT_em(const arma::vec& EL, const arma::vec& ER, const arma::vec& SL, const arma::vec& SR, const double& tmax, const arma::vec& breaks, const int& iter);
+RcppExport SEXP _NPMLEDIC_ep_DICRT_em(SEXP ELSEXP, SEXP ERSEXP, SEXP SLSEXP, SEXP SRSEXP, SEXP tmaxSEXP, SEXP breaksSEXP, SEXP iterSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type EL(ELSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type ER(ERSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type S(SSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type SL(SLSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type SR(SRSEXP);
     Rcpp::traits::input_parameter< const double& >::type tmax(tmaxSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type breaks(breaksSEXP);
     Rcpp::traits::input_parameter< const int& >::type iter(iterSEXP);
-    rcpp_result_gen = Rcpp::wrap(ep_ICRT_em(EL, ER, S, tmax, breaks, iter));
+    rcpp_result_gen = Rcpp::wrap(ep_DICRT_em(EL, ER, SL, SR, tmax, breaks, iter));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_NPMLEDIC_ep_ICRT_em", (DL_FUNC) &_NPMLEDIC_ep_ICRT_em, 6},
+    {"_NPMLEDIC_ep_DICRT_em", (DL_FUNC) &_NPMLEDIC_ep_DICRT_em, 7},
     {NULL, NULL, 0}
 };
 
