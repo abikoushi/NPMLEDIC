@@ -1,20 +1,20 @@
 #include "RcppArmadillo.h"
 // [[Rcpp::depends(RcppArmadillo)]]
 
+void a_up1(arma::mat & a, const arma::vec & p, const arma::umat & ind) {
+    int n = ind.n_rows;
+    a.fill(0);
+    for(int i=0;i<n;i++){
+    arma::vec q = arma::zeros<arma::vec>(ind(i,1)-ind(i,0)+1);
+        for(int j = arma::as_scalar(ind(i,0));j<arma::as_scalar(ind(i,1));j++){
+            q.row(j-arma::as_scalar(ind(i,0))) += p.row(j);
+        }
+    q /= sum(q);
+    a.rows(ind(i,0), ind(i,1)) += q;
+    }
+}
 
-// void d_up(arma::mat & d, const arma::vec & p, const arma::uvec & j1, const arma::uvec & j2) {
-//     int n = j1.n_elem;
-//     d.fill(0);
-//     for(int i=0;i<n;i++){
-//         if(j1[i]>=0 && j2[i]>=0){
-//             arma::vec q = p.rows(j1[i], j2[i]);
-//             q /= sum(q);
-//             d.rows(j1[i],j2[i]) += q;
-//         }
-//     }
-// }
-
-void a_up(arma::mat & a, const arma::vec & p, const arma::umat & Lind, const arma::umat & Rind) {
+void a_up2(arma::mat & a, const arma::vec & p, const arma::umat & Lind, const arma::umat & Rind) {
     int n = Lind.n_rows;
     a.fill(0);
     for(int i=0;i<n;i++){
@@ -105,31 +105,27 @@ arma::umat bcount(const arma::vec & U, const arma::vec & breaks){
     return indexmat;
 }
 
-// arma::vec getS(const arma::vec & SL, const arma::vec & SR, const double & midp){
-//     return SL+midp*(SR-SL);
-// }
 
-
-// // [[Rcpp::export]]
-// arma::vec ep_ICRT_em(const arma::vec & EL,
-//                       const arma::vec & ER,
-//                       const arma::vec & S,
-//                       const double & tmax,
-//                       const arma::vec & breaks,
-//                       const int & iter) {
-//     int m = breaks.n_rows;
-//     arma::vec prob = arma::ones<arma::vec>(m)/m;
-//     arma::umat aind = acount(S-ER, S-EL, breaks);
-//     arma::umat bind = bcount(tmax-S, breaks);
-//     arma::vec d = arma::zeros<arma::vec>(m);
-//     arma::vec B = arma::zeros<arma::vec>(m);
-//     for(int it=0; it<iter; it++){
-//         d_up(d, prob, aind.col(0), aind.col(1));
-//         b_up(B, d, prob, bind.col(0), bind.col(1));
-//         p_up(prob, B, d);
-//     }
-//     return prob;
-// }
+// [[Rcpp::export]]
+arma::vec ep_ICRT_em(const arma::vec & EL,
+                      const arma::vec & ER,
+                      const arma::vec & S,
+                      const double & tmax,
+                      const arma::vec & breaks,
+                      const int & iter) {
+    int m = breaks.n_rows;
+    arma::vec prob = arma::ones<arma::vec>(m)/m;
+    arma::umat aind = acount(S-ER, S-EL, breaks);
+    arma::umat bind = bcount(tmax-S, breaks);
+    arma::vec d = arma::zeros<arma::vec>(m);
+    arma::vec B = arma::zeros<arma::vec>(m);
+    for(int it=0; it<iter; it++){
+        a_up1(d, prob, aind);
+        b_up(B, d, prob, bind.col(0), bind.col(1));
+        p_up(prob, B, d);
+    }
+    return prob;
+}
 
 // [[Rcpp::export]]
 arma::vec ep_DICRT_em(const arma::vec & EL,
@@ -147,7 +143,7 @@ arma::vec ep_DICRT_em(const arma::vec & EL,
     arma::vec A = arma::zeros<arma::vec>(m);
     arma::vec B = arma::zeros<arma::vec>(m);
     for(int it=0; it<iter; it++){
-        a_up(A, prob, aind_L, aind_R);
+        a_up2(A, prob, aind_L, aind_R);
         b_up(B, A, prob, bind.col(0), bind.col(1));
         p_up(prob, B, A);
     }

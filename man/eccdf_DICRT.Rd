@@ -1,5 +1,6 @@
 \name{eccdf_DICRT}
 \alias{eccdf_DICRT}
+\alias{eccdf_ICRT}
 \title{
 Estimate emperical survival function from doubly interval censored with right truncated data
 }
@@ -8,6 +9,8 @@ Estimate emperical survival function from doubly interval censored with right tr
 }
 \usage{
 eccdf_DICRT(EL, ER, SL, SR, tmax=Inf, breaks=NULL, midp=0.5, iter=1000L)
+
+eccdf_ICRT(EL, ER, S, tmax=Inf, breaks=NULL, iter=1000L)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -22,6 +25,9 @@ symptom onset left
 }
   \item{SR}{
 symptom onset right
+}
+  \item{S}{
+symptom onset
 }
 \item{tmax}{
 upper truncation point
