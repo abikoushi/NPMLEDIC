@@ -1,19 +1,18 @@
 #' @export simDIC
-simDIC <- function(inc, Ew, Sw){
-  N <- length(inc)
+simDIC <- function(y){
+  N <- length(y)
+  at <- cumsum(rexp(N))
+  Sw <- rexp(N)
+  Ew <- rexp(N)
+  S <- at + y
   r_e <- runif(N)
   r_s <- runif(N)
-  S_L <- inc - r_e*Sw
-  S_R <- inc + (1-r_e)*Sw
-  E_R <- (1-r_s)*Ew
-  data.frame(E_L=0, E_R=pmin(E_R,S_R),
-             S_L=pmax(S_L,0), S_R=S_R)
+  LS <- S - r_s*Sw
+  RS <- S + (1-r_s)*Sw
+  LE <- at - r_e*Ew
+  RE <- at + (1-r_e)*Ew
+  return(data.frame(LE=pmax(LE,0), RE=RE,
+                    LS=pmax(LS,LE), RS=RS,
+                    S=S, E=at))
 }
 
-#' @export simIC
-simIC <- function(inc, Ew){
-  N <- length(inc)
-  r_e <- runif(N)
-  E_R <- (1-r_s)*Ew
-  data.frame(E_L=0, E_R=pmin(E_R,S_R),S=inc)
-}

@@ -1,11 +1,11 @@
 Package: NPMLEDIC
 Type: Package
-Title: What the package does (short line)
+Title: Nomparametric estimation for doubly interval censored data
 Version: 1.0
 Date: 2022-10-06
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Author: Ko ABE
+Maintainer: Ko ABE <koabecontact@gmail.com>
+Description: Nomparametric estimation for doubly interval censored data
+License: MIT
 Imports: Rcpp (>= 1.0.9)
 LinkingTo: Rcpp, RcppArmadillo

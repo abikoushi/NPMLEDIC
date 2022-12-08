@@ -1,6 +1,5 @@
 \name{simDIC}
 \alias{simDIC}
-\alias{simIC}
 \title{
 Simulate doubly interval censored data
 }
@@ -10,7 +9,6 @@ Simulate doubly interval censored data
 \usage{
 simDIC(inc, Ew, Sw)
 
-simIC(inc, Ew)
 }
 
 \arguments{
@@ -25,7 +23,7 @@ simIC(inc, Ew)
 }
 }
 \details{
-simulate
+Simulate doubly interval censored data
 }
 
 \examples{
