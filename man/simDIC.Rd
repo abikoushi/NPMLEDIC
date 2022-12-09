@@ -8,19 +8,22 @@ Simulate doubly interval censored data
 }
 \usage{
 simDIC(inc, Ew, Sw)
-
 }
 
 \arguments{
   \item{inc}{
-  incubation period (target of estimation)
+  incubation period (the target of estimation)
 }
-\item{Ew}{
- width of the exposure intervals
+\item{at}{
+ time-points of infection (if \code{NULL} draw from \code{rexp})
 }
-\item{Sw}{
- width of the sympton onset intervals
+\item{WE}{
+ width of the exposure intervals (if \code{NULL} draw from \code{rexp})
 }
+\item{WS}{
+ width of the sympton onset intervals (if \code{NULL} draw from \code{rexp})
+}
+
 }
 \details{
 Simulate doubly interval censored data
@@ -28,7 +31,5 @@ Simulate doubly interval censored data
 
 \examples{
 x <- rweibull(10,2,7)
-ew <- rexp(10)
-sw <- rexp(10)
-simDIC(x,ew,sw)
+simDIC(x)
 }
