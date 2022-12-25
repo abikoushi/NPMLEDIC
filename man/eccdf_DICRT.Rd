@@ -50,8 +50,9 @@ Estimate emperical survival function from doubly interval censored data.
 set.seed(123456)
 n <- 100L
 x <- rweibull(n,1.5,5)
-dat <- simDIC(x, ew, sw)
-out <- eccdf_DIC(EL=dat$E_L, ER=dat$E_R, SL=dat$S_L, SR=dat$S_R, iter=1000)
+dat <- simDIC(x)
+out <- eccdf_DIC(EL=dat$LE, ER=dat$RE, SL=dat$LS, SR=dat$RS,
+                 ctype=rep(3L,n), iter=1000)
 with(out, plot(value, prob, type="s", ylab="eccdf", xlab="x"))
 curve(pweibull(x,1.5,5,lower.tail=FALSE), add=TRUE, col="royalblue")
 }

@@ -141,7 +141,7 @@ arma::umat acount(const arma::vec & L, const arma::vec & R, const arma::vec & br
 }
 
         
-arma::umat bcount(const arma::vec & U, const arma::vec & breaks){
+arma::umat bcount(const arma::vec & L, const arma::vec & U, const arma::vec & breaks){
     int n = U.n_rows;
     int m = breaks.n_rows;
     arma::umat indexmat = arma::zeros<arma::umat>(n, 2);
@@ -272,12 +272,13 @@ arma::vec ep_DICT_em(const arma::vec & EL,
     //  arma::umat aind_L = acount(SL-ER, SR-ER, breaks);
     arma::umat aind_R = acount(SL-EL, SR-EL, breaks);
     arma::umat aind_L = acount(SL-ER, SR-ER, breaks);
-    arma::umat bind = bcount(tmax, breaks);
+    arma::umat bind_R = bcount(tmax-EL, breaks);
+    arma::umat bind_L = bcount(tmax-ER, breaks);
     arma::vec Alpha = arma::zeros<arma::vec>(m);
     arma::vec Beta = arma::zeros<arma::vec>(m);
     for(int it=0; it<iter; it++){
         a_up(Alpha, prob, aind_L, aind_R, ctype);
-        b_up(Beta, Alpha, prob, bind.col(0), bind.col(1));
+        b_up(Beta, Alpha, prob, bind_L, bind_R);
         p_up(prob, Alpha);
     }
     return prob;
