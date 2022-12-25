@@ -1,5 +1,7 @@
 \name{eccdf_DIC}
 \alias{eccdf_DIC}
+\alias{eccdf_DICT}
+
 \title{
 Estimate emperical survival function from doubly interval censored data
 }
@@ -7,7 +9,12 @@ Estimate emperical survival function from doubly interval censored data
 Estimate emperical survival function from doubly interval censored  data
 }
 \usage{
-eccdf_DIC(EL, ER, SL, SR, breaks=NULL, iter=1000L)
+eccdf_DIC(EL, ER, SL, SR, ctype,
+          breaks=NULL, iter=1000L)
+
+eccdf_DICT(EL, ER, SL, SR, ctype,
+           tmin=-Inf, tmax=Inf,
+           breaks=NULL, iter=1000L)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -30,7 +37,7 @@ symptom onset
 upper truncation point
 }
 \item{breaks}{
-breaks of histrogram
+breaks of histrogram-type estimator
 }
 \item{iter}{
 nomber of iteration

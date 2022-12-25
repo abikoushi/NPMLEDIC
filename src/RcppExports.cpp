@@ -28,9 +28,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// ep_DICT_em
+arma::vec ep_DICT_em(const arma::vec& EL, const arma::vec& ER, const arma::vec& SL, const arma::vec& SR, const arma::vec& tmax, const arma::uvec& ctype, const arma::vec& breaks, const int& iter);
+RcppExport SEXP _NPMLEDIC_ep_DICT_em(SEXP ELSEXP, SEXP ERSEXP, SEXP SLSEXP, SEXP SRSEXP, SEXP tmaxSEXP, SEXP ctypeSEXP, SEXP breaksSEXP, SEXP iterSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type EL(ELSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type ER(ERSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type SL(SLSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type SR(SRSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type tmax(tmaxSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type ctype(ctypeSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type breaks(breaksSEXP);
+    Rcpp::traits::input_parameter< const int& >::type iter(iterSEXP);
+    rcpp_result_gen = Rcpp::wrap(ep_DICT_em(EL, ER, SL, SR, tmax, ctype, breaks, iter));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_NPMLEDIC_ep_DIC_em", (DL_FUNC) &_NPMLEDIC_ep_DIC_em, 7},
+    {"_NPMLEDIC_ep_DICT_em", (DL_FUNC) &_NPMLEDIC_ep_DICT_em, 8},
     {NULL, NULL, 0}
 };
 

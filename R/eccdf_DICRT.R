@@ -3,22 +3,36 @@ p2ccdf <- function(p){
 }
 
 #' @export eccdf_DIC
-eccdf_DIC <- function(EL, ER, SL, SR, ctype, breaks=NULL, iter=1000L){
+eccdf_DIC <- function(LE, RE, LS, RS, ctype, breaks=NULL, iter=1000L){
   if(is.null(breaks)){
     breaks <- sort(unique(c(SR-ER, SR-EL, SL-ER, SL-EL)))
     breaks <- breaks[breaks>=0]
   }
-  p <- ep_DIC_em(EL, ER, SL, SR, ctype, breaks, iter)
+  n <- length(EL)
+  if(length(ctype)==1){
+    ctype = rep(ctype, n)
+  }
+  p <- ep_DIC_em(LE, RE, LS, RS, ctype, breaks, iter)
   ind <- p>0
   return(data.frame(value = breaks[ind], prob = p2ccdf(p[ind])))
 }
 
-
-#' eccdf_DICRT <- function(EL, ER, SL, SR, tmax=Inf, breaks=NULL, iter=1000L){
-#'   if(is.null(breaks)){
-#'     breaks <- sort(unique(c(SR-ER, SR-EL, SL-ER, SL-EL)))
-#'     breaks <- breaks[breaks>=0]
-#'   }
-#'   p <- ep_DICRT_em(EL, ER, SL, SR, tmax, breaks, iter) 
-#'   return(data.frame(value = breaks, prob = p2ccdf(p)))
-#' }
+#' @export eccdf_DICT
+eccdf_DICT <- function(LE, RE, LS, RS, ctype,
+                       tmax=Inf,
+                       breaks=NULL, iter=1000L){
+  if(is.null(breaks)){
+    breaks <- sort(unique(c(SR-ER, SR-EL, SL-ER, SL-EL)))
+    breaks <- breaks[breaks>=0]
+  }
+  n <- length(EL)
+  if(length(ctype)==1){
+    ctype = rep(ctype, n)
+  }
+  if(length(tmax)==1){
+    tmax = rep(tmax, n)
+  }
+  p <- ep_DICT_em(LE, RE, LS, RS, tmax, ctype, breaks, iter)
+  ind <- p>0
+  return(data.frame(value = breaks[ind], prob = p2ccdf(p[ind])))
+}

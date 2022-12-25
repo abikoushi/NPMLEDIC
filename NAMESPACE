@@ -1,4 +1,5 @@
 useDynLib(NPMLEDIC, .registration=TRUE)
 importFrom(Rcpp, evalCpp)
 export("eccdf_DIC")
+export("eccdf_DICT")
 export("simDIC")

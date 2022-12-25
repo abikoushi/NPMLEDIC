@@ -146,14 +146,39 @@ arma::umat bcount(const arma::vec & U, const arma::vec & breaks){
     int m = breaks.n_rows;
     arma::umat indexmat = arma::zeros<arma::umat>(n, 2);
     for(int i=0; i<n; i++){
-        bool st = true;
+        bool start = true;
         for(int j=0; j<m; j++){
-            bool beta = arma::as_scalar(breaks.row(j) <= U.row(i));
-            if(st){
+            bool beta = arma::as_scalar(L.row(i) <= breaks.row(j) && breaks.row(j) <= U.row(i));
+            if(start){
                 if(beta){
                     indexmat(i,0) = j;
                     indexmat(i,1) = j;
-                    st = false;
+                    start = false;
+                }
+            }else{
+                if(beta){
+                    indexmat(i,1) = j;
+                }
+            }
+        }
+    }
+    return indexmat;
+}
+
+
+arma::umat bcount(const arma::vec & U, const arma::vec & breaks){
+    int n = U.n_rows;
+    int m = breaks.n_rows;
+    arma::umat indexmat = arma::zeros<arma::umat>(n, 2);
+    for(int i=0; i<n; i++){
+        bool start = true;
+        for(int j=0; j<m; j++){
+            bool beta = arma::as_scalar(breaks.row(j) <= U.row(i));
+            if(start){
+                if(beta){
+                    indexmat(i,0) = j;
+                    indexmat(i,1) = j;
+                    start = false;
                 }
             }else{
                 if(beta){
@@ -227,6 +252,33 @@ arma::vec ep_DIC_em(const arma::vec & EL,
     for(int it=0; it<iter; it++){
         a_up(alpha, prob, aind_L, aind_R, ctype);
         p_up(prob, alpha);
+    }
+    return prob;
+}
+
+// [[Rcpp::export]]
+arma::vec ep_DICT_em(const arma::vec & EL,
+                    const arma::vec & ER,
+                    const arma::vec & SL,
+                    const arma::vec & SR,
+                    const arma::vec & tmax,
+                    const arma::uvec & ctype,
+                    const arma::vec & breaks,
+                    const int & iter) {
+    int m = breaks.n_rows;
+    arma::vec prob = arma::ones<arma::vec>(m)/m;
+    //  arma::umat aind = acount(S-ER, S-EL, breaks);
+    //  arma::umat aind_R = acount(SL-EL, SR-EL, breaks);
+    //  arma::umat aind_L = acount(SL-ER, SR-ER, breaks);
+    arma::umat aind_R = acount(SL-EL, SR-EL, breaks);
+    arma::umat aind_L = acount(SL-ER, SR-ER, breaks);
+    arma::umat bind = bcount(tmax, breaks);
+    arma::vec Alpha = arma::zeros<arma::vec>(m);
+    arma::vec Beta = arma::zeros<arma::vec>(m);
+    for(int it=0; it<iter; it++){
+        a_up(Alpha, prob, aind_L, aind_R, ctype);
+        b_up(Beta, Alpha, prob, bind.col(0), bind.col(1));
+        p_up(prob, Alpha);
     }
     return prob;
 }

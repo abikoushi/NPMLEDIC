@@ -5,3 +5,7 @@ ep_DIC_em <- function(EL, ER, SL, SR, ctype, breaks, iter) {
     .Call(`_NPMLEDIC_ep_DIC_em`, EL, ER, SL, SR, ctype, breaks, iter)
 }
 
+ep_DICT_em <- function(EL, ER, SL, SR, tmax, ctype, breaks, iter) {
+    .Call(`_NPMLEDIC_ep_DICT_em`, EL, ER, SL, SR, tmax, ctype, breaks, iter)
+}
+
