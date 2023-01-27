@@ -5,10 +5,10 @@ p2ccdf <- function(p){
 #' @export eccdf_DIC
 eccdf_DIC <- function(LE, RE, LS, RS, ctype, breaks=NULL, iter=1000L){
   if(is.null(breaks)){
-    breaks <- sort(unique(c(SR-ER, SR-EL, SL-ER, SL-EL)))
+    breaks <- sort(unique(c(RS-RE, RS-LE, LS-RE, LS-LE)))
     breaks <- breaks[breaks>=0]
   }
-  n <- length(EL)
+  n <- length(LE)
   if(length(ctype)==1){
     ctype = rep(ctype, n)
   }
@@ -22,7 +22,7 @@ eccdf_DICT <- function(LE, RE, LS, RS, ctype,
                        tmax=Inf,
                        breaks=NULL, iter=1000L){
   if(is.null(breaks)){
-    breaks <- sort(unique(c(SR-ER, SR-EL, SL-ER, SL-EL)))
+    breaks <- sort(unique(c(RS-RE, RS-LE, LS-RE, LS-LE)))
     breaks <- breaks[breaks>=0]
   }
   n <- length(EL)
