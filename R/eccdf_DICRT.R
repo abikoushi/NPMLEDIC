@@ -12,13 +12,14 @@ eccdf_dic_em <- function(LE, RE, LS, RS, ctype, iter=1000L){
   if(length(ctype)==1){
     ctype = rep(ctype, n)
   }
-  p <- ep_DIC_em(LE, RE, LS, RS, ctype, breaks, iter)    
-  ind <- p>0
-  return(data.frame(value = breaks[ind], prob = p2ccdf(p[ind])))
+  res <- ep_DIC_em(LE, RE, LS, RS, ctype, breaks, iter)    
+  res$value <- breaks
+  res$ccdf  <- with(res, p2ccdf(prob))
+  return(res)
 }
 
 #' @export eccdf_dic_vb
-eccdf_dic_vb <- function(LE, RE, LS, RS, ctype, alpha0=0.5, iter=1000L){
+eccdf_dic_vb <- function(LE, RE, LS, RS, ctype, alpha0 = 1, iter = 500L){
   breaks <- sort(unique(c(RS-RE, RS-LE, LS-RE, LS-LE)))
   breaks <- breaks[breaks>=0]
   

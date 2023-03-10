@@ -12,7 +12,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // ep_DIC_em
-arma::vec ep_DIC_em(const arma::vec& EL, const arma::vec& ER, const arma::vec& SL, const arma::vec& SR, const arma::uvec& ctype, const arma::vec& breaks, const int& iter);
+List ep_DIC_em(const arma::vec& EL, const arma::vec& ER, const arma::vec& SL, const arma::vec& SR, const arma::uvec& ctype, const arma::vec& breaks, const int& iter);
 RcppExport SEXP _NPMLEDIC_ep_DIC_em(SEXP ELSEXP, SEXP ERSEXP, SEXP SLSEXP, SEXP SRSEXP, SEXP ctypeSEXP, SEXP breaksSEXP, SEXP iterSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
