@@ -19,6 +19,6 @@ simDIC <- function(y, at=NULL, WS=NULL, WE=NULL){
   RE <- at + (1-r_e)*WE
   return(data.frame(LE=pmax(LE,0), RE=RE,
                     LS=pmax(LS,LE,0), RS=RS,
-                    S=S, E=at))
+                    E=at, S=S))
 }
 
