@@ -3,7 +3,13 @@
 using namespace Rcpp;
 
 double sumxlogy(const arma::vec & x, const arma::vec & y){
-    return sum(arma::nonzeros(x)%log(arma::nonzeros(y)));
+    double out=0;
+    for(int i=0; i<x.n_rows; i++){
+        if(x[i]>0){
+            out += x[i]*log(y[i]);
+        }
+    }
+    return out;
 }
 
 arma::vec vec_digamma(arma::vec a){

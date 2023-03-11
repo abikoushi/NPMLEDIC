@@ -3,9 +3,12 @@ p2ccdf <- function(p){
   rev(cumsum(rev(p)))
 }
 
+#' @export rmlast
+rmlast <- function(x)x[-length(x)]
+
 #' @export eccdf_dic_em
 eccdf_dic_em <- function(LE, RE, LS, RS, ctype, iter=1000L){
-  breaks <- sort(unique(c(RS-RE, RS-LE, LS-RE, LS-LE)))
+  breaks <- sort(unique(c(0,RS-RE, RS-LE, LS-RE, LS-LE)))
   breaks <- breaks[breaks>=0]
   
   n <- length(LE)
@@ -19,8 +22,8 @@ eccdf_dic_em <- function(LE, RE, LS, RS, ctype, iter=1000L){
 }
 
 #' @export eccdf_dic_vb
-eccdf_dic_vb <- function(LE, RE, LS, RS, ctype, alpha0 = 1, iter = 500L){
-  breaks <- sort(unique(c(RS-RE, RS-LE, LS-RE, LS-LE)))
+eccdf_dic_vb <- function(LE, RE, LS, RS, ctype, alpha0 = 1, iter = 1000L){
+  breaks <- sort(unique(c(0,RS-RE, RS-LE, LS-RE, LS-LE)))
   breaks <- breaks[breaks>=0]
   
   n <- length(LE)

@@ -4,7 +4,7 @@ Title: Nomparametric estimation for doubly interval censored data
 Version: 1.0
 Date: 2022-10-06
 Author: Ko ABE
-Maintainer: Ko ABE <koabecontact@gmail.com>
+Maintainer: Ko ABE <ko.abe@med.nagoya-u.ac.jp>
 Description: Nomparametric estimation for doubly interval censored data
 License: MIT
 Imports: Rcpp (>= 1.0.9)

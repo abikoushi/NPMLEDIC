@@ -9,12 +9,10 @@ Estimate emperical survival function from doubly interval censored data
 Estimate emperical survival function from doubly interval censored  data
 }
 \usage{
-eccdf_DIC(EL, ER, SL, SR, ctype,
-          breaks=NULL, iter=1000L)
+eccdf_dic_em(EL, ER, SL, SR, ctype, iter=1000L)
 
-eccdf_DICT(EL, ER, SL, SR, ctype,
-           tmin=-Inf, tmax=Inf,
-           breaks=NULL, iter=1000L)
+eccdf_dic_vb(EL, ER, SL, SR, ctype,
+          alpha0 = 1, iter=1000L)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -36,8 +34,8 @@ symptom onset
 \item{tmax}{
 upper truncation point
 }
-\item{breaks}{
-breaks of histrogram-type estimator
+\item{alpha0}{
+parameter of the dirichlet prior
 }
 \item{iter}{
 nomber of iteration
@@ -51,8 +49,7 @@ set.seed(123456)
 n <- 100L
 x <- rweibull(n,1.5,5)
 dat <- simDIC(x)
-out <- eccdf_DIC(EL=dat$LE, ER=dat$RE, SL=dat$LS, SR=dat$RS,
-                 ctype=rep(3L,n), iter=1000)
-with(out, plot(value, prob, type="s", ylab="eccdf", xlab="x"))
+out <- eccdf_dic_vb(EL=dat$LE, ER=dat$RE, SL=dat$LS, SR=dat$RS,ctype=rep(3L,n), iter=1000)
+with(out, plot(value, rmlast(ccdf), type="s", ylab="eccdf", xlab="x"))
 curve(pweibull(x,1.5,5,lower.tail=FALSE), add=TRUE, col="royalblue")
 }
