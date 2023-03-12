@@ -74,8 +74,8 @@ void a_up(arma::vec & a, const arma::vec & p, const arma::umat & Lind, const arm
 }
 
 
-double p_up(arma::vec & p, const arma::vec & d) {
-    arma::vec num = d;
+double p_up(arma::vec & p, const arma::vec & d, const double & alpha0) {
+    arma::vec num = d + alpha0;
     p = num/sum(num);
     return sumxlogy(d, p);
 }
@@ -118,6 +118,7 @@ List ep_DIC_em(const arma::vec & EL,
                     const arma::vec & SR,
                     const arma::uvec & ctype,
                     const arma::vec & breaks,
+                    const double & alpha0,
                     const int & iter) {
     int m = breaks.n_rows;
     arma::vec prob = arma::ones<arma::vec>(m+1)/(m+1);
@@ -127,7 +128,7 @@ List ep_DIC_em(const arma::vec & EL,
     arma::vec lp = arma::zeros<arma::vec>(iter);
     for(int it=0; it<iter; it++){
         a_up(d, prob, aind_L, aind_R, ctype);
-        lp.row(it) = p_up(prob, d);
+        lp.row(it) = p_up(prob, d, alpha0);
     }
     return List::create(_["prob"]=prob, _["event"]=d, _["lp"]=lp);
 }
