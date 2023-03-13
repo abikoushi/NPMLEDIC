@@ -22,6 +22,24 @@ eccdf_dic_em <- function(LE, RE, LS, RS, ctype, alpha0 = 0, iter=1000L){
   return(res)
 }
 
+#' @export eccdf_dic_em
+eccdf_dicrt_em <- function(LE, RE, LS, RS, tmax, ctype, alpha0 = 0, iter=1000L){
+  breaks <- sort(unique(c(0,RS-RE, RS-LE, LS-RE, LS-LE)))
+  breaks <- breaks[breaks>=0]
+  n <- length(LE)
+  if(length(ctype)==1L){
+    ctype = rep(ctype, n)
+  }
+  if(length(tmax)==1L){
+    tmax = rep(tmax, n)
+  }
+  res <- ep_DICT_em(LE, RE, LS, RS, tmax, ctype, breaks, alpha0, iter)    
+  res$value <- breaks
+  res$ccdf  <- with(res, p2ccdf(prob))
+  res$variance <-with(res, (prob^2)/(event-prob^2*sum(event)*(1-prob)))
+  return(res)
+}
+
 #' @export eccdf_dic_vb
 eccdf_dic_vb <- function(LE, RE, LS, RS, ctype, alpha0 = 1, iter = 1000L){
   breaks <- sort(unique(c(0,RS-RE, RS-LE, LS-RE, LS-LE)))
