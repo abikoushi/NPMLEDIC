@@ -16,7 +16,7 @@ dat_t <- dplyr::select(dat, EL,ER,SL,SR) %>%
 out <- eccdf_DIC(dat_t$EL, dat_t$ER, dat_t$SL, dat_t$SR, dat_t$ctype, iter = 100)
 with(out,plot(value,prob,type="s"))
 
-####
+####matrixでalpha持つ
 library(ggplot2)
 x <- rweibull(100,2,7.5)
 dat <- simDIC(x)
