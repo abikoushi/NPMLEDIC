@@ -24,16 +24,11 @@ gamma(1+1/w_shape)*w_scale
 x <- rweibull(100,w_shape,w_scale)
 dat <- simDIC(x)
 out <- eccdf_dic_em(LE=dat$LE, RE=dat$RE, LS=dat$LS, RS=dat$RS,
-                       alpha0 = 0.1, ctype = 3L, iter = 250)
-
+                       alpha0 = 0.1, ctype = 3L, maxit = 250)
+length(out$lp)
 plot(out$lp,type="l")
 
-sd <- rev(sqrt(cumsum(rev(diag(solve(out$I))))))
-sd <- sd[-length(sd)]
 df <- confint_dic(out,0.95)
-
-# df <- data.frame(value=out$value, ccdf=rmlast(out$ccdf),
-#                  sd=sd)
 ggplot(df, aes(x=value, y=ccdf))+
   geom_step()+
   geom_stepribbon(aes(ymin=lower,ymax=upper), alpha=0.3)+

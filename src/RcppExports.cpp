@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // ep_DIC_em
-List ep_DIC_em(const arma::vec& EL, const arma::vec& ER, const arma::vec& SL, const arma::vec& SR, const arma::uvec& ctype, const arma::vec& breaks, const double& alpha0, const int& iter);
-RcppExport SEXP _NPMLEDIC_ep_DIC_em(SEXP ELSEXP, SEXP ERSEXP, SEXP SLSEXP, SEXP SRSEXP, SEXP ctypeSEXP, SEXP breaksSEXP, SEXP alpha0SEXP, SEXP iterSEXP) {
+List ep_DIC_em(const arma::vec& EL, const arma::vec& ER, const arma::vec& SL, const arma::vec& SR, const arma::uvec& ctype, const arma::vec& breaks, const double& alpha0, const int& maxit, const double& tol);
+RcppExport SEXP _NPMLEDIC_ep_DIC_em(SEXP ELSEXP, SEXP ERSEXP, SEXP SLSEXP, SEXP SRSEXP, SEXP ctypeSEXP, SEXP breaksSEXP, SEXP alpha0SEXP, SEXP maxitSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -24,8 +24,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::uvec& >::type ctype(ctypeSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type breaks(breaksSEXP);
     Rcpp::traits::input_parameter< const double& >::type alpha0(alpha0SEXP);
-    Rcpp::traits::input_parameter< const int& >::type iter(iterSEXP);
-    rcpp_result_gen = Rcpp::wrap(ep_DIC_em(EL, ER, SL, SR, ctype, breaks, alpha0, iter));
+    Rcpp::traits::input_parameter< const int& >::type maxit(maxitSEXP);
+    Rcpp::traits::input_parameter< const double& >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(ep_DIC_em(EL, ER, SL, SR, ctype, breaks, alpha0, maxit, tol));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -67,7 +68,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_NPMLEDIC_ep_DIC_em", (DL_FUNC) &_NPMLEDIC_ep_DIC_em, 8},
+    {"_NPMLEDIC_ep_DIC_em", (DL_FUNC) &_NPMLEDIC_ep_DIC_em, 9},
     {"_NPMLEDIC_ep_DIC_vb", (DL_FUNC) &_NPMLEDIC_ep_DIC_vb, 8},
     {"_NPMLEDIC_ep_DIC_gibbs", (DL_FUNC) &_NPMLEDIC_ep_DIC_gibbs, 8},
     {NULL, NULL, 0}

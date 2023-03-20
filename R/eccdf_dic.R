@@ -7,7 +7,8 @@ p2ccdf <- function(p){
 rmlast <- function(x)x[-length(x)]
 
 #' @export eccdf_dic_em
-eccdf_dic_em <- function(LE, RE, LS, RS, ctype, alpha0 = 0, iter=1000L){
+eccdf_dic_em <- function(LE, RE, LS, RS, ctype, alpha0 = 0,
+                         maxit=1000L, tol=1e-5){
   breaks <- sort(unique(c(0,RS-RE, RS-LE, LS-RE, LS-LE)))
   breaks <- breaks[breaks>=0]
   
@@ -15,7 +16,7 @@ eccdf_dic_em <- function(LE, RE, LS, RS, ctype, alpha0 = 0, iter=1000L){
   if(length(ctype)==1){
     ctype = rep(ctype, n)
   }
-  res <- ep_DIC_em(LE, RE, LS, RS, ctype, breaks, alpha0, iter)    
+  res <- ep_DIC_em(LE, RE, LS, RS, ctype, breaks, alpha0, maxit, tol)
   res$value <- breaks
   res$ccdf  <- with(res, p2ccdf(prob))
   m <- length(res$prob)
