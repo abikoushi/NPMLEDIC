@@ -9,3 +9,7 @@ ep_DIC_vb <- function(EL, ER, SL, SR, ctype, breaks, alpha0, iter) {
     .Call(`_NPMLEDIC_ep_DIC_vb`, EL, ER, SL, SR, ctype, breaks, alpha0, iter)
 }
 
+ep_DIC_gibbs <- function(EL, ER, SL, SR, ctype, breaks, alpha0, iter) {
+    .Call(`_NPMLEDIC_ep_DIC_gibbs`, EL, ER, SL, SR, ctype, breaks, alpha0, iter)
+}
+

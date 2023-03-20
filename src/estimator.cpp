@@ -2,6 +2,32 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 
+arma::rowvec rcate(const arma::rowvec & p){
+    int K = p.n_cols;
+    arma::rowvec cump = cumsum(p);
+    arma::rowvec x(K);
+    x.fill(0);
+    double U = R::runif(0,1);
+    if(U<=cump[0]){
+        x[0] = 1;
+    }else{
+        for(int k=1; k<K; k++){
+            if(cump[k-1]<U & U<=cump[k]){
+                x[k] = 1;
+            }
+        }
+    }
+    return(x);
+}
+
+arma::rowvec rdirichlet(const arma::rowvec & shape){
+    arma::rowvec out = arma::ones<arma::rowvec>(shape.n_elem);
+    for (int i=0; i<shape.n_elem; i++){
+        out.col(i) = R::rgamma(shape[i],1);  
+    }
+    return out/sum(out);
+}
+
 arma::vec vec_digamma(arma::vec a){
     int K = a.n_rows;
     arma::vec out(K);
@@ -155,4 +181,52 @@ List ep_DIC_vb(const arma::vec & EL,
         lp.row(it) = elp_up(prob, alpha, d, alpha0);
     }
     return List::create(_["alpha"]=alpha, _["event"]=d, _["lp"]=lp);
+}
+
+void d_smp(arma::rowvec & d, const arma::rowvec & p, const arma::umat & Lind, const arma::umat & Rind, const arma::uvec & ctype) {
+    int n = Lind.n_rows;
+    d.fill(0);
+    arma::vec r = arma::zeros<arma::vec>(d.n_elem);
+    for(int i=0;i<n;i++){
+        if(ctype[i] == 0){
+            r(Lind(i,0)) += 1.0;
+        }else if(ctype[i] == 1){
+            r += a_up1(p.t(), Lind(i,0), Rind(i,1));
+        }else if(ctype[i] == 2){
+            r += a_up1(p.t(), Rind(i,0), Rind(i,1));
+        }else if(ctype[i] == 3){
+            r += a_up3(p.t(), Lind(i,0), Lind(i,1), Rind(i,0), Rind(i,1));
+        }
+        d += rcate(r.t());
+    }
+    d.col(d.n_cols-1) += n-sum(d);
+}
+
+double p_smp(arma::rowvec & p, const arma::rowvec & d, const double & alpha0) {
+    p = rdirichlet(d + alpha0);
+    return sumxlogy(d.t(), p.t());
+}
+
+// [[Rcpp::export]]
+List ep_DIC_gibbs(const arma::vec & EL,
+               const arma::vec & ER,
+               const arma::vec & SL,
+               const arma::vec & SR,
+               const arma::uvec & ctype,
+               const arma::vec & breaks,
+               const double & alpha0,
+               const int & iter) {
+    int m = breaks.n_rows;
+    arma::rowvec prob = arma::ones<arma::rowvec>(m+1)/(m+1);
+    arma::umat aind_R = acount(SL-EL, SR-EL, breaks);
+    arma::umat aind_L = acount(SL-ER, SR-ER, breaks);
+    arma::rowvec d = arma::zeros<arma::rowvec>(m+1);
+    arma::mat p_hist = arma::ones<arma::mat>(iter, m+1);
+    arma::vec lp = arma::zeros<arma::vec>(iter);
+    for(int it=0; it<iter; it++){
+        d_smp(d, prob, aind_L, aind_R, ctype);
+        lp.row(it) = p_smp(prob, d, alpha0);
+        p_hist.row(it) = prob;
+    }
+    return List::create(_["prob"]=p_hist, _["lp"]=lp);
 }
