@@ -1,6 +1,7 @@
-\name{eccdf_DIC}
-\alias{eccdf_DIC}
-\alias{eccdf_DICT}
+\name{eccdf_dic}
+\alias{eccdf_dic_em}
+\alias{eccdf_dic_vb}
+\alias{eccdf_dic_gibbs}
 
 \title{
 Estimate emperical survival function from doubly interval censored data

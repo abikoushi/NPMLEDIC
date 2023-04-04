@@ -3,12 +3,11 @@ p2ccdf <- function(p){
   rev(cumsum(rev(p)))
 }
 
-#' @export rmlast
 rmlast <- function(x)x[-length(x)]
 
 #' @export eccdf_dic_em
-eccdf_dic_em <- function(LE, RE, LS, RS, ctype, alpha0 = 0,
-                         maxit=1000L, tol=1e-5){
+eccdf_dic_em <- function(LE, RE, LS, RS, ctype,
+                         alpha0 = 0, maxit=1000L, tol=1e-5){
   breaks <- sort(unique(c(0,RS-RE, RS-LE, LS-RE, LS-LE)))
   breaks <- breaks[breaks>=0]
   
@@ -27,18 +26,30 @@ eccdf_dic_em <- function(LE, RE, LS, RS, ctype, alpha0 = 0,
 }
 
 #' @export confint_dic
-confint_dic <- function(out_em, prob=0.95){
-  ind=with(out_em, rmlast(event)>0)
-  variance <- diag(solve(out_em$I))
-  z <- qnorm(1-0.5*(1-prob))
-  # b <- rmlast(with(out_em, rev(exp(z*sqrt(cumsum(rev(variance[ind])))/log(ccdf[ind])))))
-  b <- rmlast(with(out_em, rev(z*sqrt(cumsum(rev(variance[ind]))))))
-  value = out_em$value[ind]
-  ccdf = rmlast(out_em$ccdf)[ind]
-  return(data.frame(value=value,
-                    ccdf=ccdf,
-                    lower= ifelse(ccdf-b<0, 0, ccdf-b),
-                    upper= ifelse(ccdf+b>1, 1, ccdf+b)))
+confint_dic <- function(out_em, prob=0.95, scale="linear"){
+  ind=with(out, event>0)
+  variance <- rmlast(diag(solve(out$I[ind,ind])))
+  z <- qnorm(1-0.5*(1-probs))
+  value = out_em$value[rmlast(ind)]
+  ccdf = rmlast(out$ccdf[ind])
+  if(scale=="linear"){
+    b <- sapply(z, function(z0)rev(z0*sqrt(cumsum(rev(variance)))))
+    lower = as.matrix(ifelse(ccdf-b<0, 0, ccdf-b))
+    upper = as.matrix(ifelse(ccdf+b>1, 1, ccdf+b))
+  }
+  if(scale=="loglog"){
+    b <- sapply(z, function(z0)rev(z0*sqrt(cumsum(rev(variance)))/log(ccdf)))
+    lower = as.matrix(ccdf^exp(-b))
+    upper = as.matrix(ccdf^exp(b))
+  }
+  res <- lapply(1:length(probs),
+                function(i)data.frame(value=value,
+                                      lower = lower[,i],
+                                      upper = upper[,i],
+                                      level = probs[i]))
+  res <- do.call("rbind",res)
+  return(list(point=data.frame(value=value,ccdf=ccdf),
+              confint=res))
 }
 
 #' @export eccdf_dic_gibbs
@@ -55,25 +66,10 @@ eccdf_dic_gibbs <- function(LE, RE, LS, RS, ctype, alpha0 = 0, iter=2000L){
   return(res)
 }
 
-# eccdf_dicrt_em <- function(LE, RE, LS, RS, tmax, ctype, alpha0 = 0, iter=1000L){
-#   breaks <- sort(unique(c(0,RS-RE, RS-LE, LS-RE, LS-LE)))
-#   breaks <- breaks[breaks>=0]
-#   n <- length(LE)
-#   if(length(ctype)==1L){
-#     ctype = rep(ctype, n)
-#   }
-#   if(length(tmax)==1L){
-#     tmax = rep(tmax, n)
-#   }
-#   res <- ep_DICT_em(LE, RE, LS, RS, tmax, ctype, breaks, alpha0, iter)    
-#   res$value <- breaks
-#   res$ccdf  <- with(res, p2ccdf(prob))
-#   res$variance <-with(res, (prob^2)/(event-prob^2*sum(event)*(1-prob)))
-#   return(res)
-# }
 
 #' @export eccdf_dic_vb
-eccdf_dic_vb <- function(LE, RE, LS, RS, ctype, alpha0 = 1, iter = 1000L){
+eccdf_dic_vb <- function(LE, RE, LS, RS, ctype,
+                         alpha0 = 1, iter = 1000L){
   breaks <- sort(unique(c(0,RS-RE, RS-LE, LS-RE, LS-LE)))
   breaks <- breaks[breaks>=0]
   
