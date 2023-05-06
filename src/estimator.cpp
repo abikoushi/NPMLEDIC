@@ -89,6 +89,7 @@ arma::umat acount(const arma::vec & L, const arma::vec & R, const arma::vec & br
     for(int i=0; i<n; i++){
         bool st = true;
         for(int j=0; j<m; j++){
+            //Rprintf("%d ",j);
             bool alpha = arma::as_scalar(L.row(i) <= breaks.row(j) && breaks.row(j) <= R.row(i));
             if(st){
                 if(alpha){
@@ -102,6 +103,7 @@ arma::umat acount(const arma::vec & L, const arma::vec & R, const arma::vec & br
                 }
             }
         }
+        //Rprintf("\n");
     }
     return indexmat;
 }
@@ -111,6 +113,7 @@ void a_up(arma::vec & a, const arma::vec & p, const arma::umat & Lind, const arm
     int n = Lind.n_rows;
     a.fill(0);
     for(int i=0;i<n;i++){
+        //Rprintf("%d\n",i);
         if(ctype[i] == 0){
             a(Lind(i,0)) += 1.0;
         }else if(ctype[i] == 1){
@@ -121,7 +124,7 @@ void a_up(arma::vec & a, const arma::vec & p, const arma::umat & Lind, const arm
             a += a_up3(p, Lind(i,0), Lind(i,1), Rind(i,0), Rind(i,1));
         }
     }
-    a.row(a.n_rows-1) += n-sum(a);
+    //a.row(a.n_rows-1) += n-sum(a);
 }
 
 
@@ -173,11 +176,11 @@ List ep_DIC_vb(const arma::vec & EL,
                     const double & alpha0,
                     const int & iter) {
     int m = breaks.n_rows;
-    arma::vec alpha = arma::ones<arma::vec>(m+1);
-    arma::vec prob = alpha/(m+1);
+    arma::vec alpha = arma::ones<arma::vec>(m);
+    arma::vec prob = alpha/(m);
     arma::umat aind_R = acount(SL-EL, SR-EL, breaks);
     arma::umat aind_L = acount(SL-ER, SR-ER, breaks);
-    arma::vec d = arma::zeros<arma::vec>(m+1);
+    arma::vec d = arma::zeros<arma::vec>(m);
     arma::vec lp = arma::zeros<arma::vec>(iter);
     for(int it=0; it<iter; it++){
         a_up(d, prob, aind_L, aind_R, ctype);

@@ -5,14 +5,20 @@ p2ccdf <- function(p){
 
 rmlast <- function(x)x[-length(x)]
 
+setbreaks <- function(LE, RE, LS, RS){
+  #LS-RE #shortest case
+  #RS-LE #longest case
+  breaks <- sort(unique(c(0, LS-RE, RS-LE)))
+  return(breaks[breaks>=0])
+}
+
+
 #' @export eccdf_dic_em
 eccdf_dic_em <- function(LE, RE, LS, RS, ctype,
                          alpha0 = 0, maxit=1000L, tol=1e-5){
-  breaks <- sort(unique(c(0,RS-RE, RS-LE, LS-RE, LS-LE)))
-  breaks <- breaks[breaks>=0]
-  
+  breaks <- setbreaks(LE, RE, LS, RS)
   n <- length(LE)
-  if(length(ctype)==1){
+  if(length(ctype)==1L){
     ctype = rep(ctype, n)
   }
   res <- ep_DIC_em(LE, RE, LS, RS, ctype, breaks, alpha0, maxit, tol)
@@ -21,17 +27,17 @@ eccdf_dic_em <- function(LE, RE, LS, RS, ctype,
   m <- length(res$prob)
   I <- matrix(1,m,m)
   diag(I) <- 2/res$prob-1
-  res$I <- n*I
+  res$I <- sum(res$event)*I
   return(res)
 }
 
 #' @export confint_dic
 confint_dic <- function(out_em, prob=0.95, scale="linear"){
   ind=with(out, event>0)
-  variance <- rmlast(diag(solve(out$I[ind,ind])))
+  variance <- diag(solve(out$I[ind,ind]))
   z <- qnorm(1-0.5*(1-probs))
-  value = out_em$value[rmlast(ind)]
-  ccdf = rmlast(out$ccdf[ind])
+  value = out_em$value[ind]
+  ccdf = out$ccdf[ind]
   if(scale=="linear"){
     b <- sapply(z, function(z0)rev(z0*sqrt(cumsum(rev(variance)))))
     lower = as.matrix(ifelse(ccdf-b<0, 0, ccdf-b))
@@ -54,8 +60,7 @@ confint_dic <- function(out_em, prob=0.95, scale="linear"){
 
 #' @export eccdf_dic_gibbs
 eccdf_dic_gibbs <- function(LE, RE, LS, RS, ctype, alpha0 = 0, iter=2000L){
-  breaks <- sort(unique(c(0,RS-RE, RS-LE, LS-RE, LS-LE)))
-  breaks <- breaks[breaks>=0]
+  breaks <- setbreaks(LE, RE, LS, RS)
   n <- length(LE)
   if(length(ctype)==1){
     ctype = rep(ctype, n)
@@ -70,8 +75,7 @@ eccdf_dic_gibbs <- function(LE, RE, LS, RS, ctype, alpha0 = 0, iter=2000L){
 #' @export eccdf_dic_vb
 eccdf_dic_vb <- function(LE, RE, LS, RS, ctype,
                          alpha0 = 1, iter = 1000L){
-  breaks <- sort(unique(c(0,RS-RE, RS-LE, LS-RE, LS-LE)))
-  breaks <- breaks[breaks>=0]
+  breaks <- setbreaks(LE, RE, LS, RS)
   
   n <- length(LE)
   if(length(ctype)==1L){

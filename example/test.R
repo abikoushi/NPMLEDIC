@@ -2,73 +2,81 @@ library(NPMLEDIC)
 library(ggplot2)
 library(dplyr)
 library(readr)
-library(ggplot2)
 library(pammtools)
-
-integrate(function(x)-dunif(x,-1.5,1.5, log = TRUE)*dnorm(x), -1.5, 1.5)
-integrate(function(x)-dunif(x,-0.5,0.5, log = TRUE)*dnorm(x), -0.5, 0.5)
-
-dat <- read_csv("./example/dat.csv")
-dat_t <- dplyr::select(dat, EL,ER,SL,SR) %>% 
-  dplyr::filter(!is.na(EL)) %>% 
-  mutate(startrec = min(EL,ER,SL,SR)) %>% 
-  mutate(EL=as.integer(EL-startrec),ER=as.integer(ER-startrec),
-         SL=as.integer(SL-startrec),SR=as.integer(SR-startrec)) %>% 
-  mutate(ctype=if_else(SL==SR & EL==ER, 0L, 1L)) %>% 
-  mutate(ctype=if_else(SL==SR & EL<ER, 1L, ctype)) %>% 
-  mutate(ctype=if_else(SL<SR & EL==ER, 2L, ctype)) %>% 
-  mutate(ctype=if_else(SL<SR & EL<ER, 3L, ctype)) 
-
-out <- eccdf_dic_em(dat_t$EL, dat_t$ER, dat_t$SL, dat_t$SR, dat_t$ctype,
-                    alpha0 = 1e-9)
-
-plot(out$lp,type = "l")
-
-probs=c(0.6,0.7,0.8,0.95)
-out_ci <- confint_dic(out, prob=probs, scale = "linear")
-
-ggplot(out_ci$confint, aes(x=value))+
-  geom_ribbon(aes(ymin=lower, ymax=upper, fill=level, group=level), alpha=0.2)+
-  geom_line(data=out_ci$point,aes(y=ccdf))+
-  labs(fill="level")+
-  theme_bw(16)
-#ggsave("ci.png")
-##
 library(survival)
+
 w_shape <- 1.5
 w_scale <- 7
 
 g_shape <- 1.5
 g_scale <- 4
-#
-cat("mean: ",gamma(1+1/w_shape)*w_scale)
-cat("mean: ",g_shape*g_scale)
-#sfit <- survfit(Surv(time = dat$S-dat$RE, time2 = dat$S-dat$LE, type="interval2")~1)
-# plot(sfit, col="royalblue")
-# with(df,lines(x = value, y=ccdf), type="s")
-# with(df,lines(x = value, y=upper, type="s", lty=2))
-# with(df,lines(x = value, y=lower, type="s", lty=2))
 
+mu <- 1.7
+sigma <- 0.5
 
-x <- rweibull(500,w_shape,w_scale)
-#x <- rgamma(100,g_shape,scale=g_scale)
+cat("mean: ",exp(mu+sigma^2/2), " variance: ", (exp(sigma^2)-1)*exp(2*mu+sigma^2))
+cat("mean: ",gamma(1+1/w_shape)*w_scale,  " variance: ", (w_scale^2)*(gamma(1+2/w_shape) - gamma(1+1/w_shape)^2))
+cat("mean: ",g_shape*g_scale, " variance: ", g_shape*g_scale^2)
+
+n <- 500L
+x <- rweibull(n, w_shape, w_scale)
+#x <- rgamma(n, g_shape, scale=g_scale)
+#x <- rlnorm(n, mu, sigma)
 dat <- simDIC(x)
-
-out <- eccdf_dic_em(LE=dat$LE, RE=dat$RE, LS=dat$LS, RS=dat$RS,
-                       alpha0 = 1e-10, ctype = 3L, maxit = 5000)
-length(out$value)
-length(out$prob)
+system.time({
+  out <- eccdf_dic_em(LE=dat$LE, RE=dat$RE, LS=dat$LS, RS=dat$RS,
+                      alpha0 = 1e-5, ctype = 3L, maxit = 10000L)
+})
+head(out$value)
 plot(out$lp,type="l")
 probs=c(0.8, 0.9, 0.95, 0.99)
-out_ci <- confint_dic(out, prob = probs, scale = "loglog")
+#out_ci <- confint_dic(out, prob = probs, scale = "loglog")
 out_ci <- confint_dic(out, prob = probs, scale = "linear")
 ggplot(out_ci$confint, aes(x=value))+
   geom_ribbon(aes(ymin=lower,ymax=upper,fill=level, group = reorder(level, -level)), alpha=0.2)+
   geom_line(data=out_ci$point, aes(y=ccdf))+
-  #stat_function(fun=pgamma, args = list(shape=g_shape,scale=g_scale,lower.tail=FALSE), colour="firebrick")+
-  stat_function(fun=pweibull, args = list(shape=w_shape,scale=w_scale,lower.tail=FALSE), colour="firebrick")+
-  scale_fill_gradient(low="gray10",high = "gray90")+
+  #stat_function(fun=pgamma, args = list(shape=g_shape,scale=g_scale,lower.tail=FALSE), colour="orange2")+
+  stat_function(fun=pweibull, args = list(shape=w_shape,scale=w_scale,lower.tail=FALSE), colour="orange2")+
+  #stat_function(fun=plnorm, args = list(meanlog=mu, sdlog=sigma,lower.tail=FALSE), colour="orange2")+
+  #scale_fill_gradient(low="gray10", high = "gray90")+
   theme_bw(16)
+
+###
+n <- 100L
+#x <- rweibull(n, w_shape, w_scale)
+x <- rgamma(n, g_shape, scale=g_scale)
+dat <- simDIC(x)
+breaks <- with(dat, sort(unique(c(0, S-RE, S-LE))))
+breaks <- breaks[breaks>=0]
+breaks
+system.time({
+  out <- eccdf_dic_em(LE=dat$LE, RE=dat$RE, LS=dat$S, RS=dat$S,
+                      breaks = breaks,
+                      alpha0 = 1e-8, ctype = 1L, maxit = 300, tol = 1e-8)
+})
+ind=with(out, event>0)
+variance <- diag(solve(out$I[ind,ind]))
+z <- qnorm(1-0.5*(1-probs))
+value = out$value[ind]
+ccdf = out$ccdf[ind]
+if(scale=="linear"){
+  b <- sapply(z, function(z0)rev(z0*sqrt(cumsum(rev(variance)))))
+  lower = as.matrix(ifelse(ccdf-b<0, 0, ccdf-b))
+  upper = as.matrix(ifelse(ccdf+b>1, 1, ccdf+b))
+}
+
+matplot(out$value, upper, type="l", lty=1, col=grey.colors(4, start=0.5, end=0.8))
+matplot(out$value, lower, type="l", lty=1, col=grey.colors(4, start=0.5, end=0.8), add=TRUE)
+with(out, lines(value, ccdf[-length(ccdf)], type="s"))
+curve(pgamma(x, shape = 1.5, scale = 4, lower.tail = FALSE), add=TRUE, col="royalblue")
+sum(out$event[-length(out$event)])
+#out$event[length(out$event)]
+length(out$prob)
+#out$lp
+plot(out$lp,type="l")
+
+
+
 
 ########
 
