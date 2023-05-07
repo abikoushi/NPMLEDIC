@@ -15,7 +15,7 @@ setbreaks <- function(LE, RE, LS, RS){
 
 #' @export eccdf_dic_em
 eccdf_dic_em <- function(LE, RE, LS, RS, ctype,
-                         alpha0 = 0, maxit=1000L, tol=1e-5){
+                         alpha0 = 1, maxit=1000L, tol=1e-5){
   breaks <- setbreaks(LE, RE, LS, RS)
   n <- length(LE)
   if(length(ctype)==1L){
