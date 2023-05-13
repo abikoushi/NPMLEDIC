@@ -132,7 +132,10 @@ double elp_up(arma::vec & elp, arma::vec & alpha, const arma::vec & d, const dou
     alpha = d + alpha0;
     arma::vec logp = vec_digamma(alpha)-R::digamma(sum(alpha));
     elp = exp(logp);
-    return sum(d%logp);
+    double kld = (lgamma(sum(alpha)) - lgamma(alpha.n_elem*alpha0)) + 
+        - sum(lgamma(alpha) - lgamma(alpha0)) +
+        sum((alpha-alpha0)%(logp));
+    return sum(d%logp) - kld;
 }
 
 double p_up(arma::vec & p, const arma::vec & d, const double & alpha0) {
@@ -151,10 +154,10 @@ List ep_DIC_em(const arma::vec & EL,
                     const double & alpha0,
                     const int & maxit, const double & tol) {
     int m = breaks.n_rows;
-    arma::vec prob = arma::ones<arma::vec>(m+1)/(m+1);
+    arma::vec prob = arma::ones<arma::vec>(m)/(m);
     arma::umat aind_R = acount(SL-EL, SR-EL, breaks);
     arma::umat aind_L = acount(SL-ER, SR-ER, breaks);
-    arma::vec d = arma::zeros<arma::vec>(m+1);
+    arma::vec d = arma::zeros<arma::vec>(m);
     arma::vec lp = arma::zeros<arma::vec>(maxit);
     for(int it=1; it<maxit; it++){
         a_up(d, prob, aind_L, aind_R, ctype);
@@ -174,19 +177,22 @@ List ep_DIC_vb(const arma::vec & EL,
                     const arma::uvec & ctype,
                     const arma::vec & breaks,
                     const double & alpha0,
-                    const int & iter) {
+                    const int & maxit, const double & tol) {
     int m = breaks.n_rows;
     arma::vec alpha = arma::ones<arma::vec>(m);
     arma::vec prob = alpha/(m);
     arma::umat aind_R = acount(SL-EL, SR-EL, breaks);
     arma::umat aind_L = acount(SL-ER, SR-ER, breaks);
     arma::vec d = arma::zeros<arma::vec>(m);
-    arma::vec lp = arma::zeros<arma::vec>(iter);
-    for(int it=0; it<iter; it++){
+    arma::vec lp = arma::zeros<arma::vec>(maxit);
+    for(int it=1; it<maxit; it++){
         a_up(d, prob, aind_L, aind_R, ctype);
         lp.row(it) = elp_up(prob, alpha, d, alpha0);
+        if(abs(arma::as_scalar(lp.row(it)-lp.row(it-1))) < tol){
+            break;
+        }
     }
-    return List::create(_["alpha"]=alpha, _["event"]=d, _["lp"]=lp);
+    return List::create(_["alpha"]=alpha, _["event"]=d, _["lp"]=arma::nonzeros(lp));
 }
 
 void d_smp(arma::rowvec & d, const arma::rowvec & p, const arma::umat & Lind, const arma::umat & Rind, const arma::uvec & ctype) {

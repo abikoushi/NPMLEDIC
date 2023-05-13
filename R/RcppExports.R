@@ -5,8 +5,8 @@ ep_DIC_em <- function(EL, ER, SL, SR, ctype, breaks, alpha0, maxit, tol) {
     .Call(`_NPMLEDIC_ep_DIC_em`, EL, ER, SL, SR, ctype, breaks, alpha0, maxit, tol)
 }
 
-ep_DIC_vb <- function(EL, ER, SL, SR, ctype, breaks, alpha0, iter) {
-    .Call(`_NPMLEDIC_ep_DIC_vb`, EL, ER, SL, SR, ctype, breaks, alpha0, iter)
+ep_DIC_vb <- function(EL, ER, SL, SR, ctype, breaks, alpha0, maxit, tol) {
+    .Call(`_NPMLEDIC_ep_DIC_vb`, EL, ER, SL, SR, ctype, breaks, alpha0, maxit, tol)
 }
 
 ep_DIC_gibbs <- function(EL, ER, SL, SR, ctype, breaks, alpha0, iter) {

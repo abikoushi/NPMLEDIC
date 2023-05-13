@@ -22,41 +22,50 @@ eccdf_dic_em <- function(LE, RE, LS, RS, ctype,
     ctype = rep(ctype, n)
   }
   res <- ep_DIC_em(LE, RE, LS, RS, ctype, breaks, alpha0, maxit, tol)
-  res$value <- breaks
-  res$ccdf  <- with(res, p2ccdf(prob))
+  # res$value <- breaks
+  # res$ccdf  <- with(res, p2ccdf(prob))
+  # res$cdf  <- with(res, cumsum(prob))
+  est <- data.frame(value = breaks,
+                    event = res$event,
+                    prob = res$prob,
+                    ccdf = p2ccdf(res$prob),
+                    cdf = cumsum(res$prob))
   m <- length(res$prob)
   I <- matrix(1,m,m)
   diag(I) <- 2/res$prob-1
-  res$I <- sum(res$event)*I
-  return(res)
+  I <- sum(res$event)*I
+  return(list(estimates=est, I=I, lp=res$lp))
 }
 
 #' @export confint_dic
-confint_dic <- function(out_em, prob=0.95, scale="linear"){
-  ind=with(out, event>0)
-  variance <- diag(solve(out$I[ind,ind]))
-  z <- qnorm(1-0.5*(1-probs))
-  value = out_em$value[ind]
-  ccdf = out$ccdf[ind]
-  if(scale=="linear"){
+confint_dic <- function(out_em, prob=0.95){
+  #scale="linear"
+  ind=with(out_em, estimates$event>0)
+  variance <- diag(solve(out_em$I[ind,ind]))
+  z <- qnorm(1-0.5*(1-prob))
+  value = out_em$estimates$value[ind]
+  ccdf = out_em$estimates$ccdf[ind]
+  #if(scale=="linear"){
     b <- sapply(z, function(z0)rev(z0*sqrt(cumsum(rev(variance)))))
     lower = as.matrix(ifelse(ccdf-b<0, 0, ccdf-b))
     upper = as.matrix(ifelse(ccdf+b>1, 1, ccdf+b))
-  }
-  if(scale=="loglog"){
-    b <- sapply(z, function(z0)rev(z0*sqrt(cumsum(rev(variance)))/log(ccdf)))
-    lower = as.matrix(ccdf^exp(-b))
-    upper = as.matrix(ccdf^exp(b))
-  }
-  res <- lapply(1:length(probs),
+  #}
+  # if(scale=="loglog"){
+  #   b <- sapply(z, function(z0)rev(z0*sqrt(cumsum(rev(variance)))/log(ccdf)))
+  #   lower = as.matrix(ccdf^exp(-b))
+  #   upper = as.matrix(ccdf^exp(b))
+  # }
+  res <- lapply(1:length(prob),
                 function(i)data.frame(value=value,
                                       lower = lower[,i],
                                       upper = upper[,i],
-                                      level = probs[i]))
+                                      level = prob[i]))
   res <- do.call("rbind",res)
-  return(list(point=data.frame(value=value,ccdf=ccdf),
-              confint=res))
+  return(res)
 }
+
+######
+#supplemental
 
 #' @export eccdf_dic_gibbs
 eccdf_dic_gibbs <- function(LE, RE, LS, RS, ctype, alpha0 = 0, iter=2000L){
@@ -74,18 +83,25 @@ eccdf_dic_gibbs <- function(LE, RE, LS, RS, ctype, alpha0 = 0, iter=2000L){
 
 #' @export eccdf_dic_vb
 eccdf_dic_vb <- function(LE, RE, LS, RS, ctype,
-                         alpha0 = 1, iter = 1000L){
+                         beta = 1, maxit = 1000L, tol=1e-5){
   breaks <- setbreaks(LE, RE, LS, RS)
-  
   n <- length(LE)
   if(length(ctype)==1L){
     ctype = rep(ctype, n)
   }
+  res <- ep_DIC_vb(LE, RE, LS, RS, ctype, breaks, beta, maxit, tol)
+  prob <- with(res, alpha/sum(alpha))
+  # res$ccdf  <- p2ccdf(prob)
+  # res$cdf <- cumsum(prob)
+  # res$value <- breaks
+  est <- data.frame(value = breaks,
+                    alpha = res$alpha,
+                    event = res$event,
+                    prob = prob,
+                    ccdf = p2ccdf(prob),
+                    cdf = cumsum(prob))
   
-  res <- ep_DIC_vb(LE, RE, LS, RS, ctype, breaks, alpha0, iter)
-  res$value <- breaks
-  res$ccdf  <- with(res, p2ccdf(alpha/sum(alpha)))
-  return(res)
+  return(list(estimates=est, lp=res$lp))
 }
 
 #' @export reccdf
