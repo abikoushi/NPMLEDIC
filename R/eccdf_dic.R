@@ -65,21 +65,7 @@ confint_dic <- function(out_em, prob=0.95){
 }
 
 ######
-#supplemental
-
-#' @export eccdf_dic_gibbs
-eccdf_dic_gibbs <- function(LE, RE, LS, RS, ctype, alpha0 = 0, iter=2000L){
-  breaks <- setbreaks(LE, RE, LS, RS)
-  n <- length(LE)
-  if(length(ctype)==1){
-    ctype = rep(ctype, n)
-  }
-  res <- ep_DIC_gibbs(LE, RE, LS, RS, ctype, breaks, alpha0, iter)    
-  res$value <- breaks
-  res$ccdf  <- with(res, apply(prob, 1, p2ccdf))
-  return(res)
-}
-
+#VB tools
 
 #' @export eccdf_dic_vb
 eccdf_dic_vb <- function(LE, RE, LS, RS, ctype,
@@ -112,3 +98,18 @@ reccdf <- function(n, alpha){
   return(randp)
 }
 
+####
+#supplemental
+
+#' @export eccdf_dic_gibbs
+eccdf_dic_gibbs <- function(LE, RE, LS, RS, ctype, alpha0 = 0, iter=2000L){
+  breaks <- setbreaks(LE, RE, LS, RS)
+  n <- length(LE)
+  if(length(ctype)==1){
+    ctype = rep(ctype, n)
+  }
+  res <- ep_DIC_gibbs(LE, RE, LS, RS, ctype, breaks, alpha0, iter)    
+  res$value <- breaks
+  res$ccdf  <- with(res, apply(prob, 1, p2ccdf))
+  return(res)
+}
