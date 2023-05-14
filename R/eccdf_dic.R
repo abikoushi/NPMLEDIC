@@ -57,11 +57,17 @@ confint_dic <- function(out_em, prob=0.95){
   # }
   res <- lapply(1:length(prob),
                 function(i)data.frame(value=value,
+                                      ccdf=ccdf,
+                                      se=b[,i],
                                       lower = lower[,i],
                                       upper = upper[,i],
                                       level = prob[i]))
   res <- do.call("rbind",res)
-  return(res)
+  #if(!return_var){
+    return(res) 
+  # }else{
+  #   return(list(CI=res, variance=data.frame(value = value, ccdf=ccdf, se=b)))
+  # }
 }
 
 ######

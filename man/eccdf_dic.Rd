@@ -38,8 +38,11 @@ upper truncation point
 \item{alpha0}{
 parameter of the dirichlet prior
 }
-\item{iter}{
-nomber of iteration
+\item{maxit}{
+number of iteration
+}
+\item{tol}{
+convergence 
 }
 }
 \details{
@@ -51,6 +54,6 @@ n <- 100L
 x <- rweibull(n,1.5,5)
 dat <- simDIC(x)
 out <- eccdf_dic_vb(EL=dat$LE, ER=dat$RE, SL=dat$LS, SR=dat$RS,ctype=rep(3L,n), iter=1000)
-with(out, plot(value, rmlast(ccdf), type="s", ylab="eccdf", xlab="x"))
+with(out, plot(value, ccdf, type="s", ylab="eccdf", xlab="x"))
 curve(pweibull(x,1.5,5,lower.tail=FALSE), add=TRUE, col="royalblue")
 }

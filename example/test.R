@@ -27,6 +27,7 @@ system.time({
   out_em <- eccdf_dic_em(LE=dat$LE, RE=dat$RE, LS=dat$LS, RS=dat$RS,
                       ctype = 3L, maxit = 1000L)
 })
+
 #
 system.time({
   out_vb <- eccdf_dic_vb(LE=dat$LE, RE=dat$RE, LS=dat$LS, RS=dat$RS,
@@ -34,18 +35,23 @@ system.time({
 })
 
 plot(out_vb$lp, type="l")
-probs=c(0.8, 0.9, 0.95, 0.99)
+probs=c(0.95)
 head(out$estimates)
 #out_ci <- confint_dic(out, prob = probs, scale = "loglog")
-out_ci <- confint_dic(out, prob = probs)
-head(out_ci$point)
+out_ci <- confint_dic(out_em, prob = probs)
+
 ggplot(out_ci, aes(x=value))+
   geom_ribbon(aes(ymin=lower, ymax=upper, fill=level, group = reorder(level, -level)), alpha=0.2)+
-  geom_line(data=out$estimates, aes(y=ccdf))+
+  geom_line(data=out_em$estimates, aes(y=ccdf))+
   stat_function(fun=pgamma, args = list(shape=g_shape,scale=g_scale,lower.tail=FALSE), colour="orange2")+
   #stat_function(fun=pweibull, args = list(shape=w_shape,scale=w_scale,lower.tail=FALSE), colour="orange2")+
   #stat_function(fun=plnorm, args = list(meanlog=mu, sdlog=sigma,lower.tail=FALSE), colour="orange2")+
   #scale_fill_gradient(low="gray10", high = "gray90")+
+  theme_bw(16)
+head(out_ci)
+ggplot(out_ci, aes(x=pgamma(value,shape=g_shape,scale=g_scale,lower.tail=FALSE)-ccdf, y=se, colour=value))+
+  geom_point()+
+  facet_wrap(~level)+
   theme_bw(16)
 
 
@@ -53,8 +59,7 @@ rand <- reccdf(5000L, out_vb$estimates$alpha)
 ci <- apply(rand, 1, quantile, prob=c(0.025,0.975))
 pmean <- apply(rand, 1, mean)
 
-length(out$estimates$value)
-plot(out$estimates$value,pmean,type="s")
+plot(out_vb$estimates$value,pmean,type="s")
 curve(pgamma(x, g_shape, scale=g_scale, lower.tail = FALSE), add=TRUE, col="royalblue")
-lines(out$estimates$value, ci[1,], col="royalblue", lty=2)
-lines(out$estimates$value, ci[2,], col="royalblue", lty=2)
+lines(out_vb$estimates$value, ci[1,], col="royalblue", lty=2)
+lines(out_vb$estimates$value, ci[2,], col="royalblue", lty=2)

@@ -2,7 +2,7 @@
 \alias{reccdf}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-get random ccdf%%  ~~function to do ... ~~
+get random ccdf from using Dirichlet distribution
 }
 \description{
 get random ccdf using diriclet random number
