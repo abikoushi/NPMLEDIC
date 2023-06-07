@@ -18,25 +18,24 @@ sigma <- 0.5
 mu <- log(10/exp(sigma^2/2))
 cat("LogNormal ", "mean: ",exp(mu+sigma^2/2), " variance: ", (exp(sigma^2)-1)*exp(2*mu+sigma^2))
 
-n <- 50L
+n <- 100L
 #x <- rweibull(n, w_shape, w_scale)
 x <- rgamma(n, g_shape, scale=g_scale)
 #x <- rlnorm(n, mu, sigma)
 dat <- simDIC(x, WS = 2, WE = 2)
 system.time({
   out_em <- eccdf_dic_em(LE=dat$LE, RE=dat$RE, LS=dat$LS, RS=dat$RS,
-                      ctype = 3L, maxit = 1000L)
+                         alpha0 = 1e-8,ctype = 3L, maxit = 1000L)
 })
 
 #
-system.time({
-  out_vb <- eccdf_dic_vb(LE=dat$LE, RE=dat$RE, LS=dat$LS, RS=dat$RS,
-                      ctype = 3L, maxit  = 1000L)
-})
+# system.time({
+#   out_vb <- eccdf_dic_vb(LE=dat$LE, RE=dat$RE, LS=dat$LS, RS=dat$RS,
+#                       ctype = 3L, maxit  = 1000L)
+# })
 
-plot(out_vb$lp, type="l")
-probs=c(0.95)
-head(out$estimates)
+plot(out_em$lp, type="l")
+probs=c(0.9,0.95,0.99)
 #out_ci <- confint_dic(out, prob = probs, scale = "loglog")
 out_ci <- confint_dic(out_em, prob = probs)
 
@@ -49,8 +48,16 @@ ggplot(out_ci, aes(x=value))+
   #scale_fill_gradient(low="gray10", high = "gray90")+
   theme_bw(16)
 head(out_ci)
-ggplot(out_ci, aes(x=pgamma(value,shape=g_shape,scale=g_scale,lower.tail=FALSE)-ccdf, y=se, colour=value))+
+ggplot(out_ci, aes(y=abs(pgamma(value,shape=g_shape,scale=g_scale,lower.tail=FALSE)-ccdf), x=se, colour=value))+
   geom_point()+
+  #facet_wrap(~level)+
+  labs(y="absolute bias")+
+  theme_bw(16)
+
+ggplot(out_ci, aes(x=pgamma(value,shape=g_shape,scale=g_scale,lower.tail=FALSE), y=ccdf, colour=value))+
+  geom_point()+
+  geom_linerange(aes(ymin=ccdf-se, ymax=ccdf+se))+
+  geom_abline()+
   facet_wrap(~level)+
   theme_bw(16)
 

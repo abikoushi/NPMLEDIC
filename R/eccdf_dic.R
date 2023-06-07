@@ -22,9 +22,6 @@ eccdf_dic_em <- function(LE, RE, LS, RS, ctype,
     ctype = rep(ctype, n)
   }
   res <- ep_DIC_em(LE, RE, LS, RS, ctype, breaks, alpha0, maxit, tol)
-  # res$value <- breaks
-  # res$ccdf  <- with(res, p2ccdf(prob))
-  # res$cdf  <- with(res, cumsum(prob))
   est <- data.frame(value = breaks,
                     event = res$event,
                     prob = res$prob,
@@ -34,6 +31,7 @@ eccdf_dic_em <- function(LE, RE, LS, RS, ctype,
   I <- matrix(1,m,m)
   diag(I) <- 2/res$prob-1
   I <- sum(res$event)*I
+  diag(I) <- diag(I) + alpha0/res$prob^2
   return(list(estimates=est, I=I, lp=res$lp))
 }
 
@@ -46,7 +44,8 @@ confint_dic <- function(out_em, prob=0.95){
   value = out_em$estimates$value[ind]
   ccdf = out_em$estimates$ccdf[ind]
   #if(scale=="linear"){
-    b <- sapply(z, function(z0)rev(z0*sqrt(cumsum(rev(variance)))))
+    # b <- sapply(z, function(z0)rev(z0*sqrt(cumsum(rev(variance)))))
+    b <- sapply(z, function(z0)rev(z0*sqrt(cumsum(variance))))
     lower = as.matrix(ifelse(ccdf-b<0, 0, ccdf-b))
     upper = as.matrix(ifelse(ccdf+b>1, 1, ccdf+b))
   #}
