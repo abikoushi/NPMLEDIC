@@ -15,7 +15,7 @@ setbreaks <- function(LE, RE, LS, RS){
 
 #' @export eccdf_dic_em
 eccdf_dic_em <- function(LE, RE, LS, RS, ctype,
-                         alpha0 = 1, maxit=1000L, tol=1e-5){
+                         alpha0 = 1e-8, maxit=1000L, tol=1e-5){
   breaks <- setbreaks(LE, RE, LS, RS)
   n <- length(LE)
   if(length(ctype)==1L){
@@ -31,7 +31,7 @@ eccdf_dic_em <- function(LE, RE, LS, RS, ctype,
   I <- matrix(1,m,m)
   diag(I) <- 2/res$prob-1
   I <- sum(res$event)*I
-  diag(I) <- diag(I) + alpha0/res$prob^2
+  diag(I) <- diag(I) + alpha0/(res$prob^2)
   return(list(estimates=est, I=I, lp=res$lp))
 }
 
