@@ -1,41 +1,69 @@
+Example: Flu A
+================
+Ko Abe
+2023-07-13
+
+``` r
 library(NPMLEDIC)
 library(ggplot2)
 library(dplyr)
+```
+
+    ## 
+    ## Attaching package: 'dplyr'
+
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     filter, lag
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     intersect, setdiff, setequal, union
+
+``` r
 library(coarseDataTools)
 library(pammtools)
+```
 
-#Flu A
+    ## 
+    ## Attaching package: 'pammtools'
+
+    ## The following object is masked from 'package:stats':
+    ## 
+    ##     filter
+
+``` r
 data(fluA.inc.per)
 head(fluA.inc.per)
+```
+
+    ##   author year EL  ER  SL  SR type
+    ## 1  moser 1977  0 0.5 1.0 1.5    0
+    ## 2  moser 1977  0 0.5 1.5 2.0    0
+    ## 3  moser 1977  0 0.5 1.5 2.0    0
+    ## 4  moser 1977  0 0.5 1.5 2.0    0
+    ## 5  moser 1977  0 0.5 1.5 2.0    0
+    ## 6  moser 1977  0 0.5 1.5 2.0    0
+
+``` r
 fluAdf <- mutate(fluA.inc.per,ctype=type) %>% 
   mutate(ctype=if_else(SL==SR & EL==ER, 0L, 3L)) %>% 
   mutate(ctype=if_else(SL==SR & EL<ER, 1L, ctype)) %>% 
   mutate(ctype=if_else(SL<SR & EL==ER, 2L, ctype)) 
+```
 
-we <- dplyr::filter(fluAdf, ctype!=0) %>% 
-  mutate(WE=ER-EL,type="E")
-ws <- dplyr::filter(fluAdf, ctype==3) %>% 
-  mutate(WS=SR-SL,type="S")
-
-tab <- table(fluAdf$ctype)
-xtable(t(tab))
-
-df <- data.frame(w=c(we$WE,ws$WS), censor=c(we$type,ws$type))
-sd(we$WE)
-sd(ws$WS)
-ggplot(df, aes(x=w, linetype=censor))+
-  stat_ecdf()+
-  labs(x="width")+
-  theme_bw(16)
-
+``` r
 out_flu <- eccdf_dic_em(LE = fluAdf$EL, RE = fluAdf$ER,
                         LS = fluAdf$SL, RS = fluAdf$SR,
                         ctype = fluAdf$ctype, alpha0 = 1e-8)
+```
 
-
+``` r
 probs=c(0.95)
 ci_flu <- confint_dic(out_flu, prob=probs)
+```
 
+``` r
 flu_opt_w <- optim(c(0,1),loglikhd,dat=fluA.inc.per,dist = "W")
 flu_opt_w <- optim(flu_opt_w$par,loglikhd,dat=fluA.inc.per,dist = "W",
                    method = "BFGS")
@@ -45,8 +73,9 @@ flu_opt_g <- optim(flu_opt_g$par,loglikhd,dat=fluA.inc.per,dist = "G",
 flu_opt_l <- optim(c(0,1),loglikhd,dat=fluA.inc.per,dist = "L")
 flu_opt_l <- optim(flu_opt_l$par,loglikhd,dat=fluA.inc.per,dist = "L",
                    method = "BFGS")
+```
 
-
+``` r
 ggplot(ci_flu, aes(x=value))+
   geom_stepribbon(aes(ymin=lower, ymax=upper), alpha=0.3)+
   geom_step(aes(y=ccdf))+
@@ -65,3 +94,6 @@ ggplot(ci_flu, aes(x=value))+
   labs(x="incubation period", y="ccdf", shape="model", linetype="model", colour="model")+
   scale_colour_manual(values = c("orange2", "royalblue", "forestgreen"))+
   theme_bw(16)
+```
+
+![](fluA_files/figure-gfm/plot%20results-1.png)<!-- -->
