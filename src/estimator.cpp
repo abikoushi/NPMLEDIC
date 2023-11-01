@@ -82,6 +82,7 @@ arma::vec a_up3(const arma::vec & p, const int & Lind1, const int & Lind2, const
     return a;
 }
 
+/*
 arma::umat acount(const arma::vec & L, const arma::vec & R, const arma::vec & breaks){
     int n = L.n_rows;
     int m = breaks.n_rows;
@@ -107,6 +108,7 @@ arma::umat acount(const arma::vec & L, const arma::vec & R, const arma::vec & br
     }
     return indexmat;
 }
+*/
 
 
 void a_up(arma::vec & a, const arma::vec & p, const arma::umat & Lind, const arma::umat & Rind, const arma::uvec & ctype) {
@@ -128,11 +130,11 @@ void a_up(arma::vec & a, const arma::vec & p, const arma::umat & Lind, const arm
 }
 
 
-double elp_up(arma::vec & elp, arma::vec & alpha, const arma::vec & d, const double & alpha0) {
+double elp_up(arma::vec & elp, arma::vec & alpha, const arma::vec & d, const arma::vec & alpha0) {
     alpha = d + alpha0;
     arma::vec logp = vec_digamma(alpha)-R::digamma(sum(alpha));
     elp = exp(logp);
-    double kld = (lgamma(sum(alpha)) - lgamma(alpha.n_elem*alpha0)) + 
+    double kld = (lgamma(sum(alpha)) - lgamma(sum(alpha0))) + 
         - sum(lgamma(alpha) - lgamma(alpha0)) +
         sum((alpha-alpha0)%(logp));
     return sum(d%logp) - kld;
@@ -144,7 +146,59 @@ double p_up(arma::vec & p, const arma::vec & d, const double & alpha0) {
     return sumxlogy(d, p);
 }
 
+double p_up(arma::vec & p, const arma::vec & d, const arma::vec & alpha0) {
+  arma::vec num = d + alpha0;
+  p = num/sum(num);
+  return sumxlogy(d, p);
+}
+
 // [[Rcpp::export]]
+List ep_DIC_em(const arma::umat aind_L,
+               const arma::umat aind_R,
+               const arma::uvec & ctype,
+               const arma::vec & alpha0,
+               const int & maxit, const double & tol) {
+  int m = alpha0.n_rows;
+  arma::vec prob = arma::ones<arma::vec>(m)/(m);
+  arma::vec d = arma::zeros<arma::vec>(m);
+  arma::vec lp = arma::zeros<arma::vec>(maxit);
+  for(int it=1; it<maxit; it++){
+    a_up(d, prob, aind_L, aind_R, ctype);
+    lp.row(it) = p_up(prob, d, alpha0);
+    if(abs(arma::as_scalar(lp.row(it)-lp.row(it-1))) < tol){
+      lp = lp.rows(1,it);
+      break;
+    }
+  }
+  return List::create(_["prob"]=prob, _["event"]=d, _["lp"]=lp);
+}
+
+// [[Rcpp::export]]
+List ep_DIC_vb(const arma::umat aind_L,
+               const arma::umat aind_R,
+               const arma::uvec & ctype,
+               const arma::vec & alpha0,
+               const int & maxit, const double & tol) {
+  int m = alpha0.n_rows;
+  arma::vec alpha = arma::ones<arma::vec>(m);
+  arma::vec prob = alpha/(m);
+  // arma::umat aind_R = acount(SL-EL, SR-EL, breaks);
+  // arma::umat aind_L = acount(SL-ER, SR-ER, breaks);
+  arma::vec d = arma::zeros<arma::vec>(m);
+  arma::vec lp = arma::zeros<arma::vec>(maxit);
+  for(int it=1; it<maxit; it++){
+    a_up(d, prob, aind_L, aind_R, ctype);
+    lp.row(it) = elp_up(prob, alpha, d, alpha0);
+    if(abs(arma::as_scalar(lp.row(it)-lp.row(it-1))) < tol){
+      lp = lp.rows(1,it);
+      break;
+    }
+  }
+  return List::create(_["alpha"]=alpha, _["event"]=d, _["lp"]=lp);
+}
+
+
+/*
 List ep_DIC_em(const arma::vec & EL,
                     const arma::vec & ER,
                     const arma::vec & SL,
@@ -169,7 +223,7 @@ List ep_DIC_em(const arma::vec & EL,
     return List::create(_["prob"]=prob, _["event"]=d, _["lp"]=arma::nonzeros(lp));
 }
 
-// [[Rcpp::export]]
+
 List ep_DIC_vb(const arma::vec & EL,
                     const arma::vec & ER,
                     const arma::vec & SL,
@@ -189,12 +243,14 @@ List ep_DIC_vb(const arma::vec & EL,
         a_up(d, prob, aind_L, aind_R, ctype);
         lp.row(it) = elp_up(prob, alpha, d, alpha0);
         if(abs(arma::as_scalar(lp.row(it)-lp.row(it-1))) < tol){
-            break;
+          lp = lp.rows(1,it);
+          break;
         }
     }
     return List::create(_["alpha"]=alpha, _["event"]=d, _["lp"]=arma::nonzeros(lp));
 }
-
+*/
+ 
 void d_smp(arma::rowvec & d, const arma::rowvec & p, const arma::umat & Lind, const arma::umat & Rind, const arma::uvec & ctype) {
     int n = Lind.n_rows;
     d.fill(0);
@@ -214,24 +270,21 @@ void d_smp(arma::rowvec & d, const arma::rowvec & p, const arma::umat & Lind, co
     d.col(d.n_cols-1) += n-sum(d);
 }
 
-double p_smp(arma::rowvec & p, const arma::rowvec & d, const double & alpha0) {
+double p_smp(arma::rowvec & p, const arma::rowvec & d, const arma::vec & alpha0) {
     p = rdirichlet(d + alpha0);
     return sumxlogy(d.t(), p.t());
 }
 
 // [[Rcpp::export]]
-List ep_DIC_gibbs(const arma::vec & EL,
-               const arma::vec & ER,
-               const arma::vec & SL,
-               const arma::vec & SR,
+List ep_DIC_gibbs(const arma::umat aind_L,
+                  const arma::umat aind_R,
                const arma::uvec & ctype,
-               const arma::vec & breaks,
-               const double & alpha0,
+               const arma::vec & alpha0,
                const int & iter) {
-    int m = breaks.n_rows;
+    int m = alpha0.n_rows;
     arma::rowvec prob = arma::ones<arma::rowvec>(m+1)/(m+1);
-    arma::umat aind_R = acount(SL-EL, SR-EL, breaks);
-    arma::umat aind_L = acount(SL-ER, SR-ER, breaks);
+    // arma::umat aind_R = acount(SL-EL, SR-EL, breaks);
+    // arma::umat aind_L = acount(SL-ER, SR-ER, breaks);
     arma::rowvec d = arma::zeros<arma::rowvec>(m+1);
     arma::mat p_hist = arma::ones<arma::mat>(iter, m+1);
     arma::vec lp = arma::zeros<arma::vec>(iter);

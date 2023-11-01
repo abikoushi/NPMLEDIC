@@ -8,20 +8,36 @@ rmlast <- function(x)x[-length(x)]
 setbreaks <- function(LE, RE, LS, RS){
   #LS-RE #shortest case
   #RS-LE #longest case
-  breaks <- sort(unique(c(0, LS-RE, RS-LE)))
+  # breaks <- sort(unique(c(0, LS-RE, RS-LE))) #old
+  breaks <- sort(unique(c(LS-RE, RS-LE)))
   return(breaks[breaks>=0])
+}
+
+# rank_skipties <-function(x){
+#   match(x, sort(unique(x)))  
+# }
+
+acount <- function(LS,RS,E,breaks){
+  #the index is 0-origin in cpp (-1)   
+  cbind(match(LS-E,breaks), match(RS-E,breaks))-1L
 }
 
 
 #' @export eccdf_dic_em
 eccdf_dic_em <- function(LE, RE, LS, RS, ctype,
-                         alpha0 = 1e-8, maxit=1000L, tol=1e-5){
+                         alpha0 = 0, maxit=1000L, tol=1e-5){
   breaks <- setbreaks(LE, RE, LS, RS)
+  alpha0 <- diff(c(0,breaks))*alpha0 #prop. to interval-length
   n <- length(LE)
   if(length(ctype)==1L){
     ctype = rep(ctype, n)
   }
-  res <- ep_DIC_em(LE, RE, LS, RS, ctype, breaks, alpha0, maxit, tol)
+  aind_L <- acount(LS,RS,RE,breaks)
+  aind_R <- acount(LS,RS,LE,breaks)
+  # aind_L <- cbind(match(LS-RE,breaks), match(RS-RE,breaks))-1L
+  # aind_R <- cbind(match(LS-LE,breaks), match(RS-LE,breaks))-1L
+  res <- ep_DIC_em(aind_L, aind_R, ctype, alpha0, maxit, tol)
+  #res <- ep_DIC_em(LE, RE, LS, RS, ctype, breaks, alpha0, maxit, tol)
   est <- data.frame(value = breaks,
                     event = res$event,
                     prob = res$prob,
@@ -76,11 +92,19 @@ confint_dic <- function(out_em, prob=0.95){
 eccdf_dic_vb <- function(LE, RE, LS, RS, ctype,
                          beta = 1, maxit = 1000L, tol=1e-5){
   breaks <- setbreaks(LE, RE, LS, RS)
+  breaks <- setbreaks(LE, RE, LS, RS)
+  alpha0 <- diff(c(0,breaks))*beta #prop. to interval-length
   n <- length(LE)
   if(length(ctype)==1L){
     ctype = rep(ctype, n)
   }
-  res <- ep_DIC_vb(LE, RE, LS, RS, ctype, breaks, beta, maxit, tol)
+  aind_L <- acount(LS,RS,RE,breaks)
+  aind_R <- acount(LS,RS,LE,breaks)
+  n <- length(LE)
+  if(length(ctype)==1L){
+    ctype = rep(ctype, n)
+  }
+  res <- ep_DIC_vb(LE, RE, LS, RS, ctype, alpha0, maxit, tol)
   prob <- with(res, alpha/sum(alpha))
   # res$ccdf  <- p2ccdf(prob)
   # res$cdf <- cumsum(prob)
@@ -107,12 +131,17 @@ reccdf <- function(n, alpha){
 #supplemental
 
 #' @export eccdf_dic_gibbs
-eccdf_dic_gibbs <- function(LE, RE, LS, RS, ctype, alpha0 = 0, iter=2000L){
+eccdf_dic_gibbs <- function(LE, RE, LS, RS, ctype, beta = 1, iter=2000L){
   breaks <- setbreaks(LE, RE, LS, RS)
+  breaks <- setbreaks(LE, RE, LS, RS)
+  alpha0 <- diff(c(0,breaks))*beta #prop. to interval-length
   n <- length(LE)
-  if(length(ctype)==1){
+  if(length(ctype)==1L){
     ctype = rep(ctype, n)
   }
+  aind_L <- acount(LS,RS,RE,breaks)
+  aind_R <- acount(LS,RS,LE,breaks)
+  n <- length(LE)
   res <- ep_DIC_gibbs(LE, RE, LS, RS, ctype, breaks, alpha0, iter)    
   res$value <- breaks
   res$ccdf  <- with(res, apply(prob, 1, p2ccdf))
