@@ -13,19 +13,28 @@ setbreaks <- function(LE, RE, LS, RS){
   return(breaks[breaks>=0])
 }
 
-# rank_skipties <-function(x){
-#   match(x, sort(unique(x)))  
-# }
 
 acount <- function(LS,RS,E,breaks){
   #the index is 0-origin in cpp (-1)   
   cbind(match(LS-E,breaks), match(RS-E,breaks))-1L
 }
 
+#' @export jointecdf_dic_em
+jointecdf_dic_em <- function(LE, RE, LS, RS, maxit=1000L, tol=1e-5){
+  breaks <- sort(unique(c(LE, RE, LS, RS)))
+  LE <- match(LE,breaks)
+  RE <- match(RE,breaks)
+  LS <- match(LS,breaks)
+  RS <- match(RS,breaks)
+  res <- joint_DIC_em(LE-1L, RE-1L, LS-1L, RS-1L, length(breaks), maxit, tol)
+  res$breaks <- breaks
+  return(res)
+}
 
 #' @export eccdf_dic_em
-eccdf_dic_em <- function(LE, RE, LS, RS, ctype,
-                         alpha0 = 0, maxit=1000L, tol=1e-5){
+eccdf_dic_em <- function(LE, RE, LS, RS,
+                         alpha0=0,
+                         maxit=1000L, tol=1e-5){
   breaks <- setbreaks(LE, RE, LS, RS)
   alpha0 <- diff(c(0,breaks))*alpha0 #prop. to interval-length
   n <- length(LE)

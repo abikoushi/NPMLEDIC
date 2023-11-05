@@ -58,11 +58,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// joint_DIC_em
+List joint_DIC_em(const arma::uvec& EL, const arma::uvec& ER, const arma::uvec& SL, const arma::uvec& SR, const int& m, const int& maxit, const double& tol);
+RcppExport SEXP _NPMLEDIC_joint_DIC_em(SEXP ELSEXP, SEXP ERSEXP, SEXP SLSEXP, SEXP SRSEXP, SEXP mSEXP, SEXP maxitSEXP, SEXP tolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::uvec& >::type EL(ELSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type ER(ERSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type SL(SLSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type SR(SRSEXP);
+    Rcpp::traits::input_parameter< const int& >::type m(mSEXP);
+    Rcpp::traits::input_parameter< const int& >::type maxit(maxitSEXP);
+    Rcpp::traits::input_parameter< const double& >::type tol(tolSEXP);
+    rcpp_result_gen = Rcpp::wrap(joint_DIC_em(EL, ER, SL, SR, m, maxit, tol));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_NPMLEDIC_ep_DIC_em", (DL_FUNC) &_NPMLEDIC_ep_DIC_em, 6},
     {"_NPMLEDIC_ep_DIC_vb", (DL_FUNC) &_NPMLEDIC_ep_DIC_vb, 6},
     {"_NPMLEDIC_ep_DIC_gibbs", (DL_FUNC) &_NPMLEDIC_ep_DIC_gibbs, 5},
+    {"_NPMLEDIC_joint_DIC_em", (DL_FUNC) &_NPMLEDIC_joint_DIC_em, 7},
     {NULL, NULL, 0}
 };
 

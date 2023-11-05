@@ -13,3 +13,7 @@ ep_DIC_gibbs <- function(aind_L, aind_R, ctype, alpha0, iter) {
     .Call(`_NPMLEDIC_ep_DIC_gibbs`, aind_L, aind_R, ctype, alpha0, iter)
 }
 
+joint_DIC_em <- function(EL, ER, SL, SR, m, maxit, tol) {
+    .Call(`_NPMLEDIC_joint_DIC_em`, EL, ER, SL, SR, m, maxit, tol)
+}
+
