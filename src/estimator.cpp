@@ -1,4 +1,5 @@
 #include <RcppArmadillo.h>
+#include "util.h"
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 
@@ -37,16 +38,6 @@ arma::vec vec_digamma(arma::vec a){
     return out;
 }
 
-double sumxlogy(const arma::vec & x, const arma::vec & y){
-    double out=0;
-    for(int i=0; i<x.n_rows; i++){
-        if(x[i]>0){
-            out += x[i]*log(y[i]);
-        }
-    }
-    return out;
-}
-
 //interval censored E
 arma::vec a_up1(const arma::vec & p, const int & ind1, const int & ind2) {
     arma::vec a = arma::zeros<arma::vec>(p.n_rows);
@@ -81,34 +72,6 @@ arma::vec a_up3(const arma::vec & p, const int & Lind1, const int & Lind2, const
     }
     return a;
 }
-
-/*
-arma::umat acount(const arma::vec & L, const arma::vec & R, const arma::vec & breaks){
-    int n = L.n_rows;
-    int m = breaks.n_rows;
-    arma::umat indexmat = arma::zeros<arma::umat>(n,2);
-    for(int i=0; i<n; i++){
-        bool st = true;
-        for(int j=0; j<m; j++){
-            //Rprintf("%d ",j);
-            bool alpha = arma::as_scalar(L.row(i) <= breaks.row(j) && breaks.row(j) <= R.row(i));
-            if(st){
-                if(alpha){
-                    indexmat(i,0) = j;
-                    indexmat(i,1) = j;
-                    st = false;
-                }
-            }else{
-                if(alpha){
-                    indexmat(i,1) = j;
-                }
-            }
-        }
-        //Rprintf("\n");
-    }
-    return indexmat;
-}
-*/
 
 
 void a_up(arma::vec & a, const arma::vec & p, const arma::umat & Lind, const arma::umat & Rind, const arma::uvec & ctype) {
@@ -197,60 +160,7 @@ List ep_DIC_vb(const arma::umat aind_L,
   return List::create(_["alpha"]=alpha, _["event"]=d, _["lp"]=lp);
 }
 
-
-/*
-List ep_DIC_em(const arma::vec & EL,
-                    const arma::vec & ER,
-                    const arma::vec & SL,
-                    const arma::vec & SR,
-                    const arma::uvec & ctype,
-                    const arma::vec & breaks,
-                    const double & alpha0,
-                    const int & maxit, const double & tol) {
-    int m = breaks.n_rows;
-    arma::vec prob = arma::ones<arma::vec>(m)/(m);
-    arma::umat aind_R = acount(SL-EL, SR-EL, breaks);
-    arma::umat aind_L = acount(SL-ER, SR-ER, breaks);
-    arma::vec d = arma::zeros<arma::vec>(m);
-    arma::vec lp = arma::zeros<arma::vec>(maxit);
-    for(int it=1; it<maxit; it++){
-        a_up(d, prob, aind_L, aind_R, ctype);
-        lp.row(it) = p_up(prob, d, alpha0);
-        if(abs(arma::as_scalar(lp.row(it)-lp.row(it-1))) < tol){
-            break;
-        }
-    }
-    return List::create(_["prob"]=prob, _["event"]=d, _["lp"]=arma::nonzeros(lp));
-}
-
-
-List ep_DIC_vb(const arma::vec & EL,
-                    const arma::vec & ER,
-                    const arma::vec & SL,
-                    const arma::vec & SR,
-                    const arma::uvec & ctype,
-                    const arma::vec & breaks,
-                    const double & alpha0,
-                    const int & maxit, const double & tol) {
-    int m = breaks.n_rows;
-    arma::vec alpha = arma::ones<arma::vec>(m);
-    arma::vec prob = alpha/(m);
-    arma::umat aind_R = acount(SL-EL, SR-EL, breaks);
-    arma::umat aind_L = acount(SL-ER, SR-ER, breaks);
-    arma::vec d = arma::zeros<arma::vec>(m);
-    arma::vec lp = arma::zeros<arma::vec>(maxit);
-    for(int it=1; it<maxit; it++){
-        a_up(d, prob, aind_L, aind_R, ctype);
-        lp.row(it) = elp_up(prob, alpha, d, alpha0);
-        if(abs(arma::as_scalar(lp.row(it)-lp.row(it-1))) < tol){
-          lp = lp.rows(1,it);
-          break;
-        }
-    }
-    return List::create(_["alpha"]=alpha, _["event"]=d, _["lp"]=arma::nonzeros(lp));
-}
-*/
- 
+// Gibbs sampler
 void d_smp(arma::rowvec & d, const arma::rowvec & p, const arma::umat & Lind, const arma::umat & Rind, const arma::uvec & ctype) {
     int n = Lind.n_rows;
     d.fill(0);

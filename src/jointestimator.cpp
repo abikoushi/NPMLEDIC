@@ -1,16 +1,7 @@
 #include <RcppArmadillo.h>
+#include "util.h"
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
-
-double sumxlogy2(const arma::vec & x, const arma::vec & y){
-  double out=0;
-  for(int i=0; i<x.n_rows; i++){
-    if(x[i]>0){
-      out += x[i]*log(y[i]);
-    }
-  }
-  return out;
-}
 
 arma::mat a_upsub(const arma::vec & h, const arma::vec & lam,
                 const int & lerank, const int & rerank,
@@ -49,7 +40,7 @@ double par_up(arma::vec & h, arma::vec & lam, const arma::mat & A) {
   }
   h = num_h/sum(num_h);
   lam = num_l/sum(num_l);
-  return sumxlogy2(num_h, h)+sumxlogy2(num_l, lam);
+  return sumxlogy(num_h, h)+sumxlogy(num_l, lam);
 }
 
 // [[Rcpp::export]]
