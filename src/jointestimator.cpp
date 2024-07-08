@@ -3,15 +3,28 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 
+arma::vec expmeanlog(arma::vec x){
+  double sumx = sum(x);
+  arma::vec out = arma::zeros<arma::vec>(x.n_rows);
+  //out.fill(0);
+  for(int i=0; i<x.n_rows; i++){
+    if(x(i)>0){
+      out.row(i) = exp(R::digamma(x(i)) - R::digamma(sumx)); 
+    }
+  }
+  return out;
+}
+
 arma::mat a_upsub(const arma::vec & h, const arma::vec & lam,
                 const int & lerank, const int & rerank,
                 const int & lsrank, const int & rsrank) {
   arma::mat a = arma::zeros<arma::mat>(h.n_rows, h.n_rows);
-  for(int i=lerank; i<=rsrank; i++){
-    for(int j=lsrank; j<=rsrank; j++){
-      if(i < j){
+  for(int i=lerank; i<rsrank; i++){
+    //Rprintf("i %d\n", i);
+    int sta = std::max(lsrank,i);
+    for(int j=sta; j<rsrank; j++){
+      //Rprintf("j %d\n", j);
         a.col(j).row(i) += h.row(j-i)*lam.row(i);
-      }
     }
   }
   a /= arma::accu(a);
@@ -28,19 +41,19 @@ void Aup(arma::mat & A, const arma::vec & h, const arma::vec & lam,
   }
 }
 
-double par_up(arma::vec & h, arma::vec & lam, const arma::mat & A) {
+double par_up(arma::vec & alpha_h, arma::vec & beta_l, arma::vec & h, arma::vec & lam, const arma::mat & A) {
   int m = h.n_rows;
-  arma::vec num_h = arma::zeros<arma::vec>(m);
-  arma::vec num_l = arma::zeros<arma::vec>(m);
+  alpha_h.fill(0);
+  beta_l.fill(0);
   for(int e=0; e<m; e++){
-    for(int s=e+1; s<m; s++){
-      num_h.row(s-e) += A(e,s);
-      num_l.row(e) += A(e,s);
+    for(int s=e; s<m; s++){
+      alpha_h.row(s-e) += A(e,s);
+      beta_l.row(e) += A(e,s);
     }
   }
-  h = num_h/sum(num_h);
-  lam = num_l/sum(num_l);
-  return sumxlogy(num_h, h)+sumxlogy(num_l, lam);
+  h = expmeanlog(alpha_h);
+  lam = expmeanlog(beta_l);
+  return sumxlogy(alpha_h, h)+sumxlogy(beta_l, lam);
 }
 
 // [[Rcpp::export]]
@@ -50,17 +63,22 @@ List joint_DIC_em(const arma::uvec & EL,
                const arma::uvec & SR,
                const int & m,
                const int & maxit, const double & tol) {
-  arma::vec h = arma::ones<arma::vec>(m)/(m);
-  arma::vec lam = arma::ones<arma::vec>(m)/(m);
+  arma::vec alpha_h = arma::ones<arma::vec>(m);
+  arma::vec beta_l = arma::ones<arma::vec>(m);
   arma::mat A = arma::zeros<arma::mat>(m,m);
   arma::vec lp = arma::zeros<arma::vec>(maxit);
+  arma::vec h = arma::ones<arma::vec>(m)/m;
+  arma::vec lam = arma::ones<arma::vec>(m)/m;
   for(int it=1; it<maxit; it++){
     Aup(A, h, lam, EL, ER, SL, SR);
-    lp.row(it) = par_up(h, lam, A);
+    lp.row(it) = par_up(alpha_h, beta_l, h, lam, A);
     if(abs(arma::as_scalar(lp.row(it)-lp.row(it-1))) < tol){
       lp = lp.rows(1,it);
       break;
     }
   }
-  return List::create(_["h"]=h, _["lambda"]=lam, _["event"]=A, _["lp"]=lp);
+  return List::create(_["alpha"]=alpha_h,
+                      _["beta"]=beta_l,
+                      _["event"]=A,
+                      _["lp"]=lp);
 }
